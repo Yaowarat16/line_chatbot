@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-MODEL_URL = os.getenv("https://xqtipdusjwtykqakqhgd.supabase.co/storage/v1/object/sign/models/mobilenetV3_large_best.pth?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yNGQ1NDJjYy04ZDE2LTRhNWUtYmNiNi03ZGRjMGRkM2NiNGMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJtb2RlbHMvbW9iaWxlbmV0VjNfbGFyZ2VfYmVzdC5wdGgiLCJpYXQiOjE3Njg2NDcwMDAsImV4cCI6MTgwMDE4MzAwMH0.2MkM5DCxgtfhjvAJhHks4Fn-1UqHcFPHBaF1NjpuDxg")  # Supabase public URL
+MODEL_URL = os.getenv("MODEL_URL")  # Supabase public URL
 MODEL_PATH = "model.pth"
 DEVICE = "cpu"
 NUM_CLASSES = 3
@@ -14,14 +14,13 @@ _MODEL = None
 
 def download_model():
     if os.path.exists(MODEL_PATH):
-        print("✅ Model file already exists")
+        print("📦 Model file already exists")
         return
 
     if not MODEL_URL:
         raise RuntimeError("❌ MODEL_URL is not set")
 
     print("⬇️ Downloading model from Supabase...")
-
     r = requests.get(MODEL_URL, stream=True, timeout=60)
     r.raise_for_status()
 
@@ -39,20 +38,20 @@ def load_model():
     download_model()
 
     print("🚀 Loading model into memory...")
-
     model = models.mobilenet_v3_large(weights=None)
     model.classifier[3] = nn.Linear(1280, NUM_CLASSES)
 
     state_dict = torch.load(MODEL_PATH, map_location=DEVICE)
 
-    # 🔒 รองรับ checkpoint ที่ save มาเป็น dict
-    if isinstance(state_dict, dict) and "model_state" in state_dict:
-        state_dict = state_dict["model_state"]
+    # รองรับ checkpoint ที่ save เป็น dict
+    if isinstance(state_dict, dict):
+        if "model_state" in state_dict:
+            state_dict = state_dict["model_state"]
+        elif "state_dict" in state_dict:
+            state_dict = state_dict["state_dict"]
 
-    model.load_state_dict(state_dict, strict=False)
+    model.load_state_dict(state_dict, strict=True)
     model.eval()
-
-    print("🎯 Model ready")
     return model
 
 
