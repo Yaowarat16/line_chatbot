@@ -35,21 +35,20 @@ const BMI_RESPONSES = {
    LINE WEBHOOK
 ================================ */
 app.post("/webhook", async (req, res) => {
-  // ✅ ตอบ 200 ให้ LINE ก่อน
+  // ✅ ตอบ LINE ทันที
   res.sendStatus(200);
 
+  const event = req.body.events?.[0];
+  if (!event) return;
+
+  if (event.type !== "message" || event.message.type !== "image") {
+    return;
+  }
+
+  const replyToken = event.replyToken;
+  const imageId = event.message.id;
+
   try {
-    const event = req.body.events?.[0];
-    if (!event) return;
-
-    // 👉 รับเฉพาะรูปภาพเท่านั้น
-    if (event.type !== "message" || event.message.type !== "image") {
-      return; // ❌ ไม่ตอบอะไรกลับ
-    }
-
-    const replyToken = event.replyToken;
-    const imageId = event.message.id;
-
     /* 1️⃣ โหลดรูปจาก LINE */
     const imageRes = await axios.get(
       `https://api-data.line.me/v2/bot/message/${imageId}/content`,
@@ -62,7 +61,7 @@ app.post("/webhook", async (req, res) => {
       }
     );
 
-    /* 2️⃣ เตรียม multipart/form-data */
+    /* 2️⃣ เตรียม form-data */
     const form = new FormData();
     form.append("file", imageRes.data, {
       filename: "image.jpg",
@@ -74,24 +73,35 @@ app.post("/webhook", async (req, res) => {
       "https://bmi-ai-backend.onrender.com/predict",
       form,
       {
-        headers: {
-          ...form.getHeaders(),
-        },
+        headers: form.getHeaders(),
         timeout: 20000,
       }
     );
 
-    /*
-      👉 คาดหวัง AI ส่งกลับมาแบบนี้:
-      {
-        "predicted_class": "Class1",
-        "confidence": 0.92
-      }
-    */
-    const { predicted_class, confidence } = aiRes.data;
+    // 🔍 DEBUG สำคัญมาก
+    console.log("AI RESPONSE RAW:", aiRes.data);
+
+    /* 4️⃣ ดึงค่า class แบบปลอดภัย */
+    const predictedClassRaw =
+      aiRes.data.predicted_class ||
+      aiRes.data.class ||
+      aiRes.data.label ||
+      null;
+
+    const confidence = aiRes.data.confidence;
+
+    /* 5️⃣ normalize class → Class1 | Class2 | Class3 */
+    let predictedClass = null;
+
+    if (typeof predictedClassRaw === "string") {
+      const c = predictedClassRaw.toLowerCase();
+      if (c.includes("1")) predictedClass = "Class1";
+      else if (c.includes("2")) predictedClass = "Class2";
+      else if (c.includes("3")) predictedClass = "Class3";
+    }
 
     const bmiMessage =
-      BMI_RESPONSES[predicted_class] ||
+      BMI_RESPONSES[predictedClass] ||
       "ไม่สามารถระบุผลการประเมิน BMI ได้";
 
     const confidencePercent =
@@ -99,7 +109,7 @@ app.post("/webhook", async (req, res) => {
         ? (confidence * 100).toFixed(1)
         : "ไม่ทราบ";
 
-    /* 4️⃣ ตอบกลับ LINE */
+    /* 6️⃣ Reply LINE */
     await replyLine(
       replyToken,
       `${bmiMessage}\n\n🔍 ความมั่นใจของโมเดล: ${confidencePercent}%`
@@ -110,13 +120,10 @@ app.post("/webhook", async (req, res) => {
       err.response?.data || err.message
     );
 
-    // ตอบเฉพาะกรณี error
-    if (req.body?.events?.[0]?.replyToken) {
-      await replyLine(
-        req.body.events[0].replyToken,
-        "ไม่สามารถประมวลผลภาพได้ในขณะนี้"
-      );
-    }
+    await replyLine(
+      replyToken,
+      "❌ ไม่สามารถประมวลผลภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง"
+    );
   }
 });
 
@@ -140,7 +147,7 @@ async function replyLine(replyToken, text) {
 }
 
 /* ===============================
-   START SERVER (Render)
+   START SERVER
 ================================ */
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
