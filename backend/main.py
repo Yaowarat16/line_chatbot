@@ -14,6 +14,13 @@ CLASS_INFO = {
     2: ("overweight", "คุณมีน้ำหนักเกินเกณฑ์ 😅")
 }
 
+@app.on_event("startup")
+def load_model_on_startup():
+    """
+    Render start service → โหลดโมเดลจาก Supabase ทันที
+    """
+    get_model()
+
 @app.get("/")
 def root():
     return {"status": "ok"}
