@@ -31,8 +31,12 @@ app.post("/webhook", async (req, res) => {
       );
 
       // 2️⃣ ส่งรูปไป backend AI
+      const aiUrl = process.env.AI_BACKEND_URL.endsWith("/predict")
+        ? process.env.AI_BACKEND_URL
+        : process.env.AI_BACKEND_URL + "/predict";
+
       const aiRes = await axios.post(
-        process.env.AI_BACKEND_URL,
+        aiUrl,
         imageRes.data,
         {
           headers: {
@@ -43,17 +47,20 @@ app.post("/webhook", async (req, res) => {
       );
 
       const { message, confidence } = aiRes.data;
+      const confidencePercent = confidence
+        ? (confidence * 100).toFixed(1)
+        : "ไม่ทราบ";
 
       // 3️⃣ ตอบกลับ LINE
       await replyLine(
         replyToken,
-        `${message}\nความมั่นใจ: ${(confidence * 100).toFixed(1)}%`
+        `${message}\nความมั่นใจ: ${confidencePercent}%`
       );
 
       return res.sendStatus(200);
     }
 
-    // 👉 กรณีอื่น ใช้ flow เดิม (ไม่แตะ)
+    // 👉 กรณีอื่น
     await replyLine(
       replyToken,
       "กรุณาส่งรูปใบหน้ามาเพื่อวิเคราะห์ BMI นะงับ 😊"
@@ -61,7 +68,11 @@ app.post("/webhook", async (req, res) => {
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("Webhook error:", err.message);
+    console.error(
+      "Webhook error:",
+      err.response?.status,
+      err.response?.data || err.message
+    );
 
     if (req.body?.events?.[0]?.replyToken) {
       await replyLine(
@@ -92,7 +103,7 @@ async function replyLine(replyToken, text) {
 }
 
 // ===== START SERVER =====
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ LINE Bot running on port ${PORT}`)
 );
