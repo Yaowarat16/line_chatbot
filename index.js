@@ -9,47 +9,77 @@ const app = express();
 app.use(express.json());
 
 /* ===============================
-   BMI RESPONSE MAPPING
+   BMI MESSAGE MAPPING
 ================================ */
 const BMI_RESPONSES = {
+  Underweight: `📊 ผลการประเมินดัชนีมวลกาย (BMI)
+ค่า BMI ต่ำกว่า 18.5
+จัดอยู่ในเกณฑ์ น้ำหนักต่ำกว่าเกณฑ์
+⚠️ ควรเพิ่มพลังงานอาหาร และดูแลโภชนาการให้เหมาะสม`,
+
   Class1: `📊 ผลการประเมินดัชนีมวลกาย (BMI)
-ค่า BMI ของคุณอยู่ในช่วง 18.5 – 22.9
+ค่า BMI อยู่ในช่วง 18.5 – 22.9
 จัดอยู่ในเกณฑ์ น้ำหนักปกติ
-✅ ร่างกายมีความสมดุล เหมาะสมต่อสุขภาพ
-แนะนำให้รักษาพฤติกรรมการกินและการออกกำลังกายอย่างสม่ำเสมอ เพื่อคงสุขภาพที่ดีต่อไป`,
+✅ สุขภาพโดยรวมอยู่ในเกณฑ์ดี`,
 
   Class2: `📊 ผลการประเมินดัชนีมวลกาย (BMI)
-ค่า BMI ของคุณอยู่ในช่วง 23.0 – 24.9
-จัดอยู่ในเกณฑ์ น้ำหนักเกิน (เริ่มมีความเสี่ยง)
-⚠️ อาจเริ่มมีความเสี่ยงต่อปัญหาสุขภาพในอนาคต
-แนะนำให้ควบคุมอาหาร และเพิ่มกิจกรรมทางกาย เช่น การออกกำลังกาย เพื่อป้องกันภาวะโรคอ้วน`,
+ค่า BMI อยู่ในช่วง 23.0 – 24.9
+จัดอยู่ในเกณฑ์ น้ำหนักเกิน
+⚠️ ควรเริ่มควบคุมอาหารและออกกำลังกาย`,
 
   Class3: `📊 ผลการประเมินดัชนีมวลกาย (BMI)
-ค่า BMI ของคุณอยู่ในช่วง 25.0 – 29.9
+ค่า BMI อยู่ในช่วง 25.0 – 29.9
 จัดอยู่ในเกณฑ์ อ้วนระดับที่ 1
-🚨 มีความเสี่ยงต่อโรคไม่ติดต่อเรื้อรัง เช่น เบาหวาน ความดันโลหิตสูง
-ควรปรับพฤติกรรมการรับประทานอาหาร และออกกำลังกายอย่างเหมาะสม หากเป็นไปได้ควรปรึกษาผู้เชี่ยวชาญด้านสุขภาพ`
+🚨 มีความเสี่ยงต่อโรคเรื้อรัง`,
+
+  Obese: `📊 ผลการประเมินดัชนีมวลกาย (BMI)
+ค่า BMI ≥ 30
+จัดอยู่ในเกณฑ์ อ้วนมาก
+🚨 ควรปรึกษาผู้เชี่ยวชาญด้านสุขภาพ`
 };
+
+/* ===============================
+   CLASS NAME NORMALIZATION
+================================ */
+const CLASS_MAP = {
+  underweight: "Underweight",
+  class1: "Class1",
+  class2: "Class2",
+  class3: "Class3",
+  obese: "Obese"
+};
+
+/* ===============================
+   BMI RANGE LOGIC (Regression)
+================================ */
+function getBmiClass(bmi) {
+  if (bmi < 18.5) return "Underweight";
+  if (bmi < 23.0) return "Class1";
+  if (bmi < 25.0) return "Class2";
+  if (bmi < 30.0) return "Class3";
+  return "Obese";
+}
 
 /* ===============================
    LINE WEBHOOK
 ================================ */
 app.post("/webhook", async (req, res) => {
-  // ✅ ตอบ LINE ทันที
+  // ตอบ LINE ก่อน กัน timeout
   res.sendStatus(200);
 
-  const event = req.body.events?.[0];
-  if (!event) return;
-
-  if (event.type !== "message" || event.message.type !== "image") {
-    return;
-  }
-
-  const replyToken = event.replyToken;
-  const imageId = event.message.id;
-
   try {
-    /* 1️⃣ โหลดรูปจาก LINE */
+    const event = req.body.events?.[0];
+    if (!event) return;
+
+    // รับเฉพาะ image
+    if (event.type !== "message" || event.message.type !== "image") {
+      return;
+    }
+
+    const replyToken = event.replyToken;
+    const imageId = event.message.id;
+
+    /* 1️⃣ ดึงรูปจาก LINE */
     const imageRes = await axios.get(
       `https://api-data.line.me/v2/bot/message/${imageId}/content`,
       {
@@ -57,73 +87,79 @@ app.post("/webhook", async (req, res) => {
           Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
         },
         responseType: "arraybuffer",
-        timeout: 10000,
       }
     );
 
-    /* 2️⃣ เตรียม form-data */
+    /* 2️⃣ ส่งรูปไป AI */
     const form = new FormData();
     form.append("file", imageRes.data, {
       filename: "image.jpg",
       contentType: "image/jpeg",
     });
 
-    /* 3️⃣ ส่งไป AI Backend */
     const aiRes = await axios.post(
-      "https://bmi-ai-backend-ngbp.onrender.com/predict",
+      "https://bmi-ai-backend.onrender.com/predict",
       form,
-      {
-        headers: form.getHeaders(),
-        timeout: 20000,
-      }
+      { headers: form.getHeaders() }
     );
 
-    // 🔍 DEBUG สำคัญมาก
     console.log("AI RESPONSE RAW:", aiRes.data);
 
-    /* 4️⃣ ดึงค่า class แบบปลอดภัย */
-    const predictedClassRaw =
-      aiRes.data.predicted_class ||
-      aiRes.data.class ||
-      aiRes.data.label ||
-      null;
+    /* ===============================
+       🔥 SMART RESPONSE HANDLER
+    ================================ */
 
-    const confidence = aiRes.data.confidence;
+    const {
+      bmi,
+      predicted_class,
+      class_name,
+      confidence,
+      message
+    } = aiRes.data;
 
-    /* 5️⃣ normalize class → Class1 | Class2 | Class3 */
-    let predictedClass = null;
+    let finalClass = null;
 
-    if (typeof predictedClassRaw === "string") {
-      const c = predictedClassRaw.toLowerCase();
-      if (c.includes("1")) predictedClass = "Class1";
-      else if (c.includes("2")) predictedClass = "Class2";
-      else if (c.includes("3")) predictedClass = "Class3";
+    // 1️⃣ Regression มาก่อน (ดีที่สุด)
+    if (typeof bmi === "number") {
+      finalClass = getBmiClass(bmi);
+    }
+    // 2️⃣ class_name (ใหม่)
+    else if (class_name) {
+      finalClass = CLASS_MAP[class_name.toLowerCase()];
+    }
+    // 3️⃣ predicted_class (เก่า)
+    else if (predicted_class) {
+      finalClass = predicted_class;
     }
 
     const bmiMessage =
-      BMI_RESPONSES[predictedClass] ||
-      "ไม่สามารถระบุผลการประเมิน BMI ได้";
+      BMI_RESPONSES[finalClass] ||
+      message ||
+      "ไม่สามารถประเมินผลดัชนีมวลกายได้";
 
-    const confidencePercent =
+    const confidenceText =
       typeof confidence === "number"
-        ? (confidence * 100).toFixed(1)
-        : "ไม่ทราบ";
+        ? `\n\n🔍 ความมั่นใจของโมเดล: ${(confidence * 100).toFixed(1)}%`
+        : "";
 
-    /* 6️⃣ Reply LINE */
+    const bmiValueText =
+      typeof bmi === "number" ? `\n📈 ค่า BMI: ${bmi}` : "";
+
+    /* 4️⃣ ตอบกลับ LINE */
     await replyLine(
       replyToken,
-      `${bmiMessage}\n\n🔍 ความมั่นใจของโมเดล: ${confidencePercent}%`
+      `${bmiMessage}${bmiValueText}${confidenceText}`
     );
+
   } catch (err) {
-    console.error(
-      "Webhook processing error:",
-      err.response?.data || err.message
-    );
+    console.error("Webhook error:", err.message);
 
-    await replyLine(
-      replyToken,
-      "❌ ไม่สามารถประมวลผลภาพได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง"
-    );
+    if (req.body?.events?.[0]?.replyToken) {
+      await replyLine(
+        req.body.events[0].replyToken,
+        "ไม่สามารถประมวลผลภาพได้ในขณะนี้ 😢"
+      );
+    }
   }
 });
 
