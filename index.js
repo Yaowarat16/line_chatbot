@@ -11,8 +11,22 @@ app.use(express.json());
 // =======================
 // CONFIG
 // =======================
-const AI_API_URL = "https://bmi-ai-backend-ngbp.onrender.com";
+const AI_API_URL = process.env.AI_API_URL;
 const LINE_REPLY_API = "https://api.line.me/v2/bot/message/reply";
+
+if (!process.env.LINE_CHANNEL_ACCESS_TOKEN) {
+  throw new Error("❌ LINE_CHANNEL_ACCESS_TOKEN not set");
+}
+if (!AI_API_URL) {
+  throw new Error("❌ AI_API_URL not set");
+}
+
+// =======================
+// HEALTH CHECK (Render)
+// =======================
+app.get("/", (req, res) => {
+  res.json({ status: "ok", service: "LINE BMI Bot" });
+});
 
 // =======================
 // LINE WEBHOOK
@@ -57,7 +71,7 @@ app.post("/webhook", async (req, res) => {
       contentType: "image/jpeg",
     });
 
-    // 3️⃣ ส่งไป AI Backend
+    // 3️⃣ ส่งไป AI Backend (BMI Regression)
     const aiRes = await axios.post(
       `${AI_API_URL}/predict`,
       form,
@@ -66,11 +80,11 @@ app.post("/webhook", async (req, res) => {
           ...form.getHeaders(),
         },
         timeout: 30000,
-        validateStatus: () => true, // ❗ ไม่ throw auto
+        validateStatus: () => true,
       }
     );
 
-    // ===== เช็กสถานะ =====
+    // ===== เช็ก backend error =====
     if (aiRes.status !== 200) {
       console.error("AI ERROR:", aiRes.status, aiRes.data);
       await replyLine(
@@ -80,16 +94,9 @@ app.post("/webhook", async (req, res) => {
       return;
     }
 
-    /**
-     * EXPECTED RESPONSE (Regression)
-     * {
-     *   bmi: 23.6,
-     *   message: "BMI โดยประมาณ: 23.6"
-     * }
-     */
-    const { bmi, message } = aiRes.data;
+    const { bmi, message } = aiRes.data || {};
 
-    // ===== กรณี backend แจ้งข้อความพิเศษ =====
+    // ===== backend แจ้ง error / ไม่พบหน้า =====
     if (typeof bmi !== "number") {
       await replyLine(
         replyToken,
@@ -106,13 +113,13 @@ app.post("/webhook", async (req, res) => {
     else status = "อ้วน";
 
     const replyText = `
-🧮 ผลการประเมิน BMI
+🧮 ผลการประเมิน BMI (จากภาพใบหน้า)
 ━━━━━━━━━━━━━━
 ค่า BMI โดยประมาณ: ${bmi.toFixed(1)}
 สถานะ: ${status}
 
-ℹ️ เป็นการประเมินจากภาพใบหน้า
-ไม่สามารถใช้แทนการวัดจริงได้
+⚠️ เป็นการประเมินจาก AI
+ไม่สามารถใช้แทนการตรวจวัดจริงได้
 `.trim();
 
     // 4️⃣ ตอบกลับ LINE
