@@ -9,5 +9,6 @@ transform = transforms.Compose([
     )
 ])
 
+
 def preprocess_image(image):
     return transform(image).unsqueeze(0)
