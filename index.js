@@ -12,13 +12,13 @@ app.use(express.json());
 // CONFIG
 // =======================
 const AI_API_URL = "https://bmi-ai-backend-ngbp.onrender.com";
-const LINE_API = "https://api.line.me/v2/bot/message/reply";
+const LINE_REPLY_API = "https://api.line.me/v2/bot/message/reply";
 
 // =======================
 // LINE WEBHOOK
 // =======================
 app.post("/webhook", async (req, res) => {
-  // ตอบ LINE ก่อน กัน timeout
+  // ตอบ LINE ก่อน ป้องกัน timeout
   res.sendStatus(200);
 
   const event = req.body?.events?.[0];
@@ -31,7 +31,7 @@ app.post("/webhook", async (req, res) => {
     if (event.message?.type !== "image") {
       await replyLine(
         replyToken,
-        "กรุณาส่งรูปใบหน้ามาเพื่อวิเคราะห์ BMI นะงับ 😊"
+        "📸 กรุณาส่งรูปใบหน้ามาเพื่อประเมินค่า BMI นะคะ 😊"
       );
       return;
     }
@@ -50,7 +50,7 @@ app.post("/webhook", async (req, res) => {
       }
     );
 
-    // 2️⃣ เตรียม form-data
+    // 2️⃣ เตรียม multipart/form-data
     const form = new FormData();
     form.append("file", imageRes.data, {
       filename: "image.jpg",
@@ -66,32 +66,57 @@ app.post("/webhook", async (req, res) => {
           ...form.getHeaders(),
         },
         timeout: 30000,
-        validateStatus: () => true, // 🔥 ไม่ throw auto
+        validateStatus: () => true, // ❗ ไม่ throw auto
       }
     );
 
-    // ===== เช็ก response จาก AI =====
+    // ===== เช็กสถานะ =====
     if (aiRes.status !== 200) {
-      console.error("AI status error:", aiRes.status, aiRes.data);
+      console.error("AI ERROR:", aiRes.status, aiRes.data);
       await replyLine(
         replyToken,
-        "ขออภัย ระบบวิเคราะห์มีปัญหา กรุณาลองใหม่อีกครั้งนะคะ 😢"
+        "❌ ระบบวิเคราะห์มีปัญหา กรุณาลองใหม่อีกครั้งนะคะ"
       );
       return;
     }
 
-    const { message, confidence } = aiRes.data;
+    /**
+     * EXPECTED RESPONSE (Regression)
+     * {
+     *   bmi: 23.6,
+     *   message: "BMI โดยประมาณ: 23.6"
+     * }
+     */
+    const { bmi, message } = aiRes.data;
 
-    const confidencePercent =
-      typeof confidence === "number"
-        ? (confidence * 100).toFixed(1)
-        : "ไม่ทราบ";
+    // ===== กรณี backend แจ้งข้อความพิเศษ =====
+    if (typeof bmi !== "number") {
+      await replyLine(
+        replyToken,
+        message || "ไม่สามารถประเมิน BMI จากภาพนี้ได้ 😢"
+      );
+      return;
+    }
+
+    // ===== ตีความ BMI =====
+    let status = "";
+    if (bmi < 18.5) status = "น้ำหนักต่ำกว่าเกณฑ์";
+    else if (bmi < 23) status = "น้ำหนักปกติ";
+    else if (bmi < 25) status = "น้ำหนักเกิน";
+    else status = "อ้วน";
+
+    const replyText = `
+🧮 ผลการประเมิน BMI
+━━━━━━━━━━━━━━
+ค่า BMI โดยประมาณ: ${bmi.toFixed(1)}
+สถานะ: ${status}
+
+ℹ️ เป็นการประเมินจากภาพใบหน้า
+ไม่สามารถใช้แทนการวัดจริงได้
+`.trim();
 
     // 4️⃣ ตอบกลับ LINE
-    await replyLine(
-      replyToken,
-      `${message}\nความมั่นใจ: ${confidencePercent}%`
-    );
+    await replyLine(replyToken, replyText);
 
   } catch (err) {
     console.error("Webhook error:", err.response?.data || err.message);
@@ -110,7 +135,7 @@ app.post("/webhook", async (req, res) => {
 // =======================
 async function replyLine(replyToken, text) {
   await axios.post(
-    LINE_API,
+    LINE_REPLY_API,
     {
       replyToken,
       messages: [{ type: "text", text }],
