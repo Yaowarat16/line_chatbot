@@ -1,0 +1,48 @@
+# =========================
+# Node.js (LINE chatbot)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Python (FastAPI / AI)
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.env
+.venv/
+venv/
+ENV/
+
+# =========================
+# AI Model / Weights
+# =========================
+*.pth
+*.pt
+weights/
+models/
+
+# =========================
+# OS / Editor
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Render / Deploy
+# =========================
+render.yaml.backup
