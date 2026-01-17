@@ -20,25 +20,20 @@ def root():
 
 @app.post("/predict")
 async def predict(request: Request, file: UploadFile = File(None)):
-    """
-    รองรับทั้ง
-    - Swagger / form-data (UploadFile)
-    - LINE webhook (application/octet-stream)
-    """
     try:
-        # ✅ กรณี Swagger / form-data
+        # 🔹 Swagger / form-data
         if file is not None:
             image_bytes = await file.read()
+        # 🔹 LINE webhook (octet-stream)
         else:
-            # ✅ กรณี LINE webhook
             image_bytes = await request.body()
 
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
 
-    model = get_model()  # lazy load
+    model = get_model()
     x = preprocess_image(image)
 
     with torch.no_grad():
