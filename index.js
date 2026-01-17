@@ -10,64 +10,74 @@ app.use(express.json());
 
 // ===== LINE WEBHOOK =====
 app.post("/webhook", async (req, res) => {
+  // 👉 ตอบ 200 ให้ LINE ก่อน กัน timeout
+  res.sendStatus(200);
+
   try {
     const event = req.body.events?.[0];
-    if (!event) return res.sendStatus(200);
+    if (!event) return;
 
     const replyToken = event.replyToken;
 
-    if (event.message?.type === "image") {
-      const imageId = event.message.id;
-
-      // 1️⃣ โหลดรูปจาก LINE
-      const imageRes = await axios.get(
-        `https://api-data.line.me/v2/bot/message/${imageId}/content`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
-          },
-          responseType: "arraybuffer",
-        }
-      );
-
-      // 2️⃣ เตรียม multipart/form-data
-      const form = new FormData();
-      form.append("file", imageRes.data, {
-        filename: "image.jpg",
-        contentType: "image/jpeg",
-      });
-
-      // 3️⃣ ส่งไป AI backend
-      const aiRes = await axios.post(
-        "https://bmi-ai-backend.onrender.com/predict",
-        form,
-        {
-          headers: {
-            ...form.getHeaders(),
-          },
-          timeout: 20000,
-        }
-      );
-
-      const { message, confidence } = aiRes.data;
-      const confidencePercent = (confidence * 100).toFixed(1);
-
+    // ===== รับเฉพาะรูป =====
+    if (event.message?.type !== "image") {
       await replyLine(
         replyToken,
-        `${message}\nความมั่นใจ: ${confidencePercent}%`
+        "กรุณาส่งรูปใบหน้ามาเพื่อวิเคราะห์ BMI นะงับ 😊"
       );
-
-      return res.sendStatus(200);
+      return;
     }
 
-    await replyLine(
-      replyToken,
-      "กรุณาส่งรูปใบหน้ามาเพื่อวิเคราะห์ BMI นะงับ 😊"
+    const imageId = event.message.id;
+
+    // 1️⃣ โหลดรูปจาก LINE
+    const imageRes = await axios.get(
+      `https://api-data.line.me/v2/bot/message/${imageId}/content`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.LINE_CHANNEL_ACCESS_TOKEN}`,
+        },
+        responseType: "arraybuffer",
+        timeout: 10000,
+      }
     );
 
-    res.sendStatus(200);
+    // 2️⃣ เตรียม multipart/form-data ให้ตรงกับ FastAPI
+    const form = new FormData();
+    form.append("file", imageRes.data, {
+      filename: "image.jpg",
+      contentType: "image/jpeg",
+    });
+
+    // 3️⃣ ส่งไป AI Backend
+    const aiRes = await axios.post(
+      "https://bmi-ai-backend.onrender.com/predict",
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+        },
+        timeout: 20000,
+      }
+    );
+
+    const { message, confidence } = aiRes.data;
+
+    const confidencePercent =
+      typeof confidence === "number"
+        ? (confidence * 100).toFixed(1)
+        : "ไม่ทราบ";
+
+    // 4️⃣ ตอบกลับ LINE
+    await replyLine(
+      replyToken,
+      `${message}\nความมั่นใจ: ${confidencePercent}%`
+    );
   } catch (err) {
-    console.error("Webhook error:", err.response?.data || err.message);
+    console.error(
+      "Webhook processing error:",
+      err.response?.data || err.message
+    );
 
     if (req.body?.events?.[0]?.replyToken) {
       await replyLine(
@@ -75,8 +85,6 @@ app.post("/webhook", async (req, res) => {
         "ขออภัย ระบบมีปัญหาชั่วคราว 😢"
       );
     }
-
-    res.sendStatus(200);
   }
 });
 
@@ -97,6 +105,7 @@ async function replyLine(replyToken, text) {
   );
 }
 
+// ===== START SERVER =====
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () =>
   console.log(`✅ LINE Bot running on port ${PORT}`)
