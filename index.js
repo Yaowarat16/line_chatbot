@@ -46,6 +46,19 @@ const CLASS_NAMES_ASIA_5 = [
   "อ้วนระดับ 2",               // >= 30.0
 ];
 
+// ข้อความมาตรฐาน: ให้ผู้ใช้ส่งรูปใหม่ (รูปคน)
+const PLEASE_SEND_NEW_HUMAN_PHOTO = `
+❌ หากภาพนี้ไม่ใช่ “รูปใบหน้าคน” ไม่สามารถวิเคราะห์ได้ค่ะ
+
+📸 กรุณาส่งรูปใหม่ที่:
+- แสงสว่างพอ ไม่มืด/ไม่ย้อนแสง
+- มีคนเดียวในภาพ
+- ไม่ไกล/ไม่เบลอ
+`.trim();
+
+// ตั้ง threshold ความมั่นใจขั้นต่ำ (ปรับได้จาก Render ENV: MIN_CONFIDENCE)
+const MIN_CONFIDENCE = Number(process.env.MIN_CONFIDENCE ?? 0.45);
+
 // =======================
 // Helpers
 // =======================
@@ -138,16 +151,13 @@ app.post("/webhook", async (req, res) => {
     try {
       // รับเฉพาะ message event
       if (event.type !== "message" || !event.message) {
-        await replyLine(replyToken, "ขออภัย ตอนนี้รองรับเฉพาะการส่งรูปเพื่อประเมินค่ะ 🙂");
+        await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
         continue;
       }
 
       // ถ้าไม่ใช่รูปภาพ
       if (event.message.type !== "image") {
-        await replyLine(
-          replyToken,
-          "📸 กรุณาส่ง “รูปคน (เต็มตัว/เห็นรูปร่างชัด)” เพื่อให้ AI ประเมินได้แม่นขึ้นนะคะ 😊"
-        );
+        await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
         continue;
       }
 
@@ -173,12 +183,15 @@ app.post("/webhook", async (req, res) => {
         validateStatus: () => true, // ให้เราอ่าน body ได้แม้เป็น 4xx/5xx
       });
 
+      // ✅ ถ้า AI ไม่ตอบ 200 ให้บอกส่งรูปใหม่ (สำหรับ 400/415/422) หรือแจ้ง error ทั่วไป
       if (aiRes.status !== 200) {
         console.error("AI ERROR:", aiRes.status, aiRes.data);
-        await replyLine(
-          replyToken,
-          `❌ ระบบ AI ตอบกลับผิดพลาด (HTTP ${aiRes.status})\nลองใหม่อีกครั้งนะคะ`
-        );
+
+        if (aiRes.status === 400 || aiRes.status === 415 || aiRes.status === 422) {
+          await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+        } else {
+          await replyLine(replyToken, "ขออภัย ระบบมีปัญหาชั่วคราว 😢 ลองใหม่อีกครั้งนะคะ");
+        }
         continue;
       }
 
@@ -194,13 +207,6 @@ app.post("/webhook", async (req, res) => {
 ━━━━━━━━━━━━━━
 ค่า BMI โดยประมาณ: ${bmi.toFixed(1)}
 สถานะ: ${label}
-
-เกณฑ์แปลผล:
-< 18.5: น้ำหนักน้อยกว่าเกณฑ์/ผอม
-18.5 - 22.9: ปกติสมส่วน
-23.0 - 24.9: น้ำหนักเกิน/ท้วม
-25.0 - 29.9: อ้วนระดับ 1
-≥ 30.0: อ้วนระดับ 2
 
 ⚠️ เป็นการประเมินจาก AI
 ไม่สามารถใช้แทนการตรวจวัดจริงได้
@@ -222,6 +228,12 @@ app.post("/webhook", async (req, res) => {
         const conf =
           typeof data.confidence === "number" ? data.confidence : null;
 
+        // ✅ confidence ต่ำมาก: ให้ส่งรูปใหม่ (มักจะเป็นรูปไม่ชัด/ไม่ใช่คน/ไม่เห็นรูปร่าง)
+        if (conf !== null && conf < MIN_CONFIDENCE) {
+          await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+          continue;
+        }
+
         const confText =
           conf !== null ? `\nความมั่นใจ: ${(conf * 100).toFixed(2)}%` : "";
 
@@ -232,7 +244,7 @@ app.post("/webhook", async (req, res) => {
 
 ℹ️ ถ้าต้องการให้ประเมินแม่นขึ้น:
 - ส่งรูปที่ชัด/สว่าง
-- เห็นรูปร่างชัด (เต็มตัว)
+- เห็นรูปใบหน้าชัด
 - มีคนเดียวในภาพ
 `.trim();
 
@@ -240,12 +252,9 @@ app.post("/webhook", async (req, res) => {
         continue;
       }
 
-      // 7) format ไม่ตรงที่คาด
+      // 7) format ไม่ตรงที่คาด → ให้ส่งรูปใหม่
       console.warn("Unexpected AI response format:", data);
-      await replyLine(
-        replyToken,
-        "ไม่สามารถประเมินผลจากภาพนี้ได้ 😢 ลองส่งรูปใหม่ที่ชัดขึ้นนะคะ"
-      );
+      await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
     } catch (err) {
       console.error("Webhook error:", err?.response?.data || err?.message || err);
 
@@ -263,5 +272,8 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`✅ LINE Bot running on port ${PORT}`);
   console.log(`🔗 AI Predict URL: ${normalizePredictUrl(AI_API_URL)}`);
-  console.log(`🔒 Verify Signature: ${VERIFY_SIGNATURE ? "ON" : "OFF (no LINE_CHANNEL_SECRET)"}`);
+  console.log(
+    `🔒 Verify Signature: ${VERIFY_SIGNATURE ? "ON" : "OFF (no LINE_CHANNEL_SECRET)"}`
+  );
+  console.log(`🎚️ MIN_CONFIDENCE: ${MIN_CONFIDENCE}`);
 });
