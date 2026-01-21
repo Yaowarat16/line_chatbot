@@ -38,19 +38,19 @@ const VERIFY_SIGNATURE = Boolean(LINE_CHANNEL_SECRET);
 // BMI TEXT + IMAGE
 // =======================
 const CLASS_NAMES_ASIA_5 = [
-  "BMI < 18.5 (น้ำหนักน้อยกว่าเกณฑ์)",
-  "BMI 18.5 – 22.9 (ปกติ)",
-  "BMI 23.0 – 24.9 (น้ำหนักเกิน)",
-  "BMI 25.0 – 29.9 (อ้วนระดับ 1)",
-  "BMI ≥ 30.0 (อ้วนระดับ 2)",
+  "ประมาณ < 18.5 (น้ำหนักน้อยกว่าเกณฑ์)",
+  "ประมาณ 18.5 – 22.9 (น้ำหนักปกติ/สมส่วน)",
+  "ประมาณ 23.0 – 24.9 (น้ำหนักเกิน)",
+  "ประมาณ 25.0 – 29.9 (โรคอ้วนระดับ 1)",
+  "ประมาณ ≥ 30.0 (โรคอ้วนระดับ 2)",
 ];
 
 const BMI_IMAGE_MAP = {
-  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class1.png",
-  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class2.png",
-  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class3.png",
-  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class4.png",
-  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class5.png",
+  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMS5wbmciLCJpYXQiOjE3NjkwMTAwOTUsImV4cCI6MTgwMDU0NjA5NX0.VOn6XOV2XizPoVGBDWAFB7-EaHE0n-nculHlg8DosyA",
+  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMi5wbmciLCJpYXQiOjE3NjkwMTAxNTUsImV4cCI6MTgwMDU0NjE1NX0.uSsYeDl9TkcfsOoIsk2AK0Vfi7DndbcNLfjFVhZyfMo",
+  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMy5wbmciLCJpYXQiOjE3NjkwMTAxNjcsImV4cCI6MTgwMDU0NjE2N30.VJomNsbCWK-rN_uo1qi8RhOlR7I7LDFeZIX3QIwdDy4",
+  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNC5wbmciLCJpYXQiOjE3NjkwMTAxODIsImV4cCI6MTgwMDU0NjE4Mn0.n5Do2bx7Yfl51acD-J4Kw7FaKQWnOtJpjErAiymg4nA",
+  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNS5wbmciLCJpYXQiOjE3NjkwMTAxOTMsImV4cCI6MTgwMDU0NjE5M30.JN2r_lMasg18f_iDq8KadpGLyeLzvrgIlNUzTiAzotI",
 };
 
 const PLEASE_SEND_PHOTO_TEXT =
