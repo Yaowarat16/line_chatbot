@@ -38,9 +38,9 @@ const VERIFY_SIGNATURE = Boolean(LINE_CHANNEL_SECRET);
 // BMI TEXT + IMAGE
 // =======================
 const CLASS_NAMES_ASIA_5 = [
-  "BMI < 18.5 (ผอม)",
+  "BMI < 18.5 (น้ำหนักน้อยกว่าเกณฑ์)",
   "BMI 18.5 – 22.9 (ปกติ)",
-  "BMI 23.0 – 24.9 (ท้วม)",
+  "BMI 23.0 – 24.9 (น้ำหนักเกิน)",
   "BMI 25.0 – 29.9 (อ้วนระดับ 1)",
   "BMI ≥ 30.0 (อ้วนระดับ 2)",
 ];
@@ -53,10 +53,8 @@ const BMI_IMAGE_MAP = {
   4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class5.png",
 };
 
-const MIN_CONFIDENCE = Number(process.env.MIN_CONFIDENCE ?? 0.45);
-
 const PLEASE_SEND_PHOTO_TEXT =
-  "📸 กรุณาส่งรูปใบหน้าของคุณเพื่อให้ AI วิเคราะห์ครับ";
+  "📸 กรุณาส่งรูปใบหน้าของคุณ (เห็นหน้าชัด มีคนเดียว) เพื่อให้ AI วิเคราะห์ครับ";
 
 // =======================
 // HELPERS
@@ -115,6 +113,7 @@ app.post("/webhook", async (req, res) => {
     return;
   }
 
+  // ต้องตอบ 200 ให้ LINE ทันที
   res.sendStatus(200);
 
   const events = req.body?.events;
@@ -126,12 +125,12 @@ app.post("/webhook", async (req, res) => {
 
     try {
       // =======================
-      // 🟢 TEXT (Rich Menu / พิมพ์)
+      // TEXT (Rich Menu / พิมพ์)
       // =======================
       if (event.message.type === "text") {
         const text = event.message.text.trim();
 
-        // เมนู FACE 2 BMI
+        // ผู้ใช้กดเมนู FACE 2 BMI
         if (text === "FACE 2 BMI") {
           await replyLine(replyToken, [
             { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
@@ -139,7 +138,7 @@ app.post("/webhook", async (req, res) => {
           continue;
         }
 
-        // เมนูอื่น → ไม่ต้องขึ้น “กรุณาส่งรูป”
+        // เมนูข้อมูล → ไม่ตอบอะไรเพิ่ม
         if (
           text === "BMI คืออะไร" ||
           text === "วิธีการถ่ายรูป" ||
@@ -148,7 +147,7 @@ app.post("/webhook", async (req, res) => {
           continue;
         }
 
-        // พิมพ์มั่ว
+        // พิมพ์อย่างอื่น
         await replyLine(replyToken, [
           {
             type: "text",
@@ -159,7 +158,7 @@ app.post("/webhook", async (req, res) => {
       }
 
       // =======================
-      // 🟢 IMAGE → วิเคราะห์
+      // IMAGE → วิเคราะห์ BMI
       // =======================
       if (event.message.type === "image") {
         const { bytes, contentType } = await getLineImageContent(
@@ -178,6 +177,7 @@ app.post("/webhook", async (req, res) => {
           { headers: form.getHeaders(), validateStatus: () => true }
         );
 
+        // AI ปฏิเสธ (เช่น ไม่เจอหน้า)
         if (aiRes.status !== 200) {
           await replyLine(replyToken, [
             { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
@@ -187,20 +187,22 @@ app.post("/webhook", async (req, res) => {
 
         const { class_id, confidence } = aiRes.data;
 
-        if (
-          typeof class_id !== "number" ||
-          confidence < MIN_CONFIDENCE
-        ) {
+        // ถ้าไม่มี class_id = วิเคราะห์ไม่ได้
+        if (typeof class_id !== "number") {
           await replyLine(replyToken, [
             { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
           ]);
           continue;
         }
 
+        // ✅ ส่งผลลัพธ์เสมอ
         await replyLine(replyToken, [
           {
             type: "text",
-            text: `✅ AI วิเคราะห์สำเร็จ\n${CLASS_NAMES_ASIA_5[class_id]}\nความมั่นใจ: ${(confidence * 100).toFixed(2)}%`,
+            text: `✅ AI วิเคราะห์สำเร็จ
+━━━━━━━━━━━━━━
+${CLASS_NAMES_ASIA_5[class_id]}
+${confidence !== undefined ? `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%` : ""}`,
           },
           {
             type: "image",
