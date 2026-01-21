@@ -29,12 +29,8 @@ const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
 const AI_API_URL = process.env.AI_API_URL;
 
-if (!LINE_CHANNEL_ACCESS_TOKEN) {
-  throw new Error("❌ LINE_CHANNEL_ACCESS_TOKEN not set");
-}
-if (!AI_API_URL) {
-  throw new Error("❌ AI_API_URL not set");
-}
+if (!LINE_CHANNEL_ACCESS_TOKEN) throw new Error("❌ LINE_CHANNEL_ACCESS_TOKEN not set");
+if (!AI_API_URL) throw new Error("❌ AI_API_URL not set");
 
 const VERIFY_SIGNATURE = Boolean(LINE_CHANNEL_SECRET);
 
@@ -50,15 +46,14 @@ const CLASS_NAMES_ASIA_5 = [
 ];
 
 // =======================
-// BMI IMAGE MAP (5 IMAGES)
-// 🔴 เปลี่ยน URL เป็นของคุณเอง
+// BMI IMAGE MAP
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMS5wbmciLCJpYXQiOjE3NjkwMDY0MzMsImV4cCI6MTgwMDU0MjQzM30.gEZJpKy7ohlP5UctiypRt3ZndGF8RRI5FpkUX6p3BYU",
-  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMi5wbmciLCJpYXQiOjE3NjkwMDY1MjEsImV4cCI6MTgwMDU0MjUyMX0.aQtbMzT_XMzrICEzN4rblVQZ8XlodrNrnBwBQTNBnSQ",
-  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMy5wbmciLCJpYXQiOjE3NjkwMDY1MzYsImV4cCI6MTgwMDU0MjUzNn0.B3lhIIHfK-yZx_TAnWEkFjl-NBhwYRWMxukuTV6YLvI",
-  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNC5wbmciLCJpYXQiOjE3NjkwMDY1NjQsImV4cCI6MTgwMDU0MjU2NH0.y3uuDUN_uLRHamWrZF7Z9ZT00k5Ooofbnt7v37NCCoA",
-  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNS5wbmciLCJpYXQiOjE3NjkwMDY1ODcsImV4cCI6MTgwMDU0MjU4N30.3SLG-ZChEU7sm9FqgwoF3kDePLj87RaPrhK1qikfufo",
+  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class1.png",
+  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class2.png",
+  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class3.png",
+  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class4.png",
+  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class5.png",
 };
 
 // =======================
@@ -98,36 +93,10 @@ function verifyLineSignature(req) {
   return hash === signature;
 }
 
-async function replyLineText(replyToken, text) {
+async function replyLine(replyToken, messages) {
   await axios.post(
     LINE_REPLY_API,
-    {
-      replyToken,
-      messages: [{ type: "text", text }],
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-}
-
-async function replyLineTextAndImage(replyToken, text, imageUrl) {
-  await axios.post(
-    LINE_REPLY_API,
-    {
-      replyToken,
-      messages: [
-        { type: "text", text },
-        {
-          type: "image",
-          originalContentUrl: imageUrl,
-          previewImageUrl: imageUrl,
-        },
-      ],
-    },
+    { replyToken, messages },
     {
       headers: {
         Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
@@ -151,14 +120,7 @@ async function getLineImageContent(messageId) {
 }
 
 // =======================
-// HEALTH CHECK
-// =======================
-app.get("/", (req, res) => {
-  res.json({ status: "ok", service: "LINE BMI Bot" });
-});
-
-// =======================
-// LINE WEBHOOK
+// WEBHOOK
 // =======================
 app.post("/webhook", async (req, res) => {
   if (!verifyLineSignature(req)) {
@@ -166,7 +128,6 @@ app.post("/webhook", async (req, res) => {
     return;
   }
 
-  // ตอบ LINE ทันที
   res.sendStatus(200);
 
   const events = req.body?.events;
@@ -177,69 +138,70 @@ app.post("/webhook", async (req, res) => {
     if (!replyToken) continue;
 
     try {
-      // รับเฉพาะรูป
-      if (event.type !== "message" || event.message.type !== "image") {
-        await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+      // 1️⃣ ไม่ใช่ message → ไม่ตอบ
+      if (event.type !== "message") continue;
+
+      // 2️⃣ message แต่ไม่ใช่รูป → บอกให้ส่งรูป
+      if (event.message.type !== "image") {
+        await replyLine(replyToken, [
+          {
+            type: "text",
+            text: "📸 กรุณาส่งรูปภาพเพื่อให้ AI วิเคราะห์นะครับ",
+          },
+        ]);
         continue;
       }
 
-      // โหลดรูปจาก LINE
+      // 3️⃣ เป็นรูป → ส่งให้ AI
       const { bytes, contentType } = await getLineImageContent(event.message.id);
 
-      // เตรียมส่งไป AI
       const form = new FormData();
-      const filename = contentType.includes("png") ? "image.png" : "image.jpg";
-      form.append("file", bytes, { filename, contentType });
+      form.append("file", bytes, {
+        filename: contentType.includes("png") ? "image.png" : "image.jpg",
+        contentType,
+      });
 
       const aiRes = await axios.post(
         normalizePredictUrl(AI_API_URL),
         form,
-        {
-          headers: form.getHeaders(),
-          timeout: 30000,
-          validateStatus: () => true,
-        }
+        { headers: form.getHeaders(), validateStatus: () => true }
       );
 
+      // ❌ AI วิเคราะห์ไม่ผ่าน → ส่งข้อความ error
       if (aiRes.status !== 200) {
-        await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+        await replyLine(replyToken, [{ type: "text", text: PLEASE_SEND_NEW_HUMAN_PHOTO }]);
         continue;
       }
 
-      const data = aiRes.data;
+      const { class_id, confidence } = aiRes.data;
 
-      // ===== classification =====
-      if (typeof data.class_id === "number") {
-        const classId = data.class_id;
-        const conf = data.confidence ?? null;
+      if (typeof class_id !== "number" || confidence < MIN_CONFIDENCE) {
+        await replyLine(replyToken, [{ type: "text", text: PLEASE_SEND_NEW_HUMAN_PHOTO }]);
+        continue;
+      }
 
-        if (conf !== null && conf < MIN_CONFIDENCE) {
-          await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
-          continue;
-        }
-
-        const textReply = `
+      // ✅ วิเคราะห์ผ่าน → ส่งข้อความ + รูป
+      await replyLine(replyToken, [
+        {
+          type: "text",
+          text: `
 ✅ AI วิเคราะห์สำเร็จ
 ━━━━━━━━━━━━━━
-${CLASS_NAMES_ASIA_5[classId]}
-${conf !== null ? `\nความมั่นใจ: ${(conf * 100).toFixed(2)}%` : ""}
-`.trim();
-
-        const imageUrl = BMI_IMAGE_MAP[classId];
-
-        if (imageUrl) {
-          await replyLineTextAndImage(replyToken, textReply, imageUrl);
-        } else {
-          await replyLineText(replyToken, textReply);
-        }
-
-        continue;
-      }
-
-      await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+${CLASS_NAMES_ASIA_5[class_id]}
+ความมั่นใจ: ${(confidence * 100).toFixed(2)}%
+          `.trim(),
+        },
+        {
+          type: "image",
+          originalContentUrl: BMI_IMAGE_MAP[class_id],
+          previewImageUrl: BMI_IMAGE_MAP[class_id],
+        },
+      ]);
     } catch (err) {
-      console.error("Webhook error:", err);
-      await replyLineText(replyToken, "ขออภัย ระบบมีปัญหาชั่วคราว 😢");
+      console.error(err);
+      await replyLine(replyToken, [
+        { type: "text", text: "ขออภัย ระบบมีปัญหาชั่วคราว 😢" },
+      ]);
     }
   }
 });
@@ -250,7 +212,4 @@ ${conf !== null ? `\nความมั่นใจ: ${(conf * 100).toFixed(2)}%
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`✅ LINE Bot running on port ${PORT}`);
-  console.log(`🔗 AI Predict URL: ${normalizePredictUrl(AI_API_URL)}`);
-  console.log(`🔒 Verify Signature: ${VERIFY_SIGNATURE ? "ON" : "OFF"}`);
-  console.log(`🎚️ MIN_CONFIDENCE: ${MIN_CONFIDENCE}`);
 });
