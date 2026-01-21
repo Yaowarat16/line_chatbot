@@ -35,7 +35,7 @@ if (!AI_API_URL) throw new Error("❌ AI_API_URL not set");
 const VERIFY_SIGNATURE = Boolean(LINE_CHANNEL_SECRET);
 
 // =======================
-// BMI TEXT + IMAGE
+// BMI TEXT (5 CLASSES)
 // =======================
 const CLASS_NAMES_ASIA_5 = [
   "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ < 18.5 (น้ำหนักน้อยกว่าเกณฑ์)",
@@ -45,24 +45,42 @@ const CLASS_NAMES_ASIA_5 = [
   "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ ≥ 30.0 (อ้วนระดับ 2)",
 ];
 
+// =======================
+// BMI IMAGE MAP
+// =======================
 const BMI_IMAGE_MAP = {
-  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMS5wbmciLCJpYXQiOjE3NjkwMTAwOTUsImV4cCI6MTgwMDU0NjA5NX0.VOn6XOV2XizPoVGBDWAFB7-EaHE0n-nculHlg8DosyA",
-  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMi5wbmciLCJpYXQiOjE3NjkwMTAxNTUsImV4cCI6MTgwMDU0NjE1NX0.uSsYeDl9TkcfsOoIsk2AK0Vfi7DndbcNLfjFVhZyfMo",
-  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMy5wbmciLCJpYXQiOjE3NjkwMTAxNjcsImV4cCI6MTgwMDU0NjE2N30.VJomNsbCWK-rN_uo1qi8RhOlR7I7LDFeZIX3QIwdDy4",
-  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNC5wbmciLCJpYXQiOjE3NjkwMTAxODIsImV4cCI6MTgwMDU0NjE4Mn0.n5Do2bx7Yfl51acD-J4Kw7FaKQWnOtJpjErAiymg4nA",
-  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNS5wbmciLCJpYXQiOjE3NjkwMTAxOTMsImV4cCI6MTgwMDU0NjE5M30.JN2r_lMasg18f_iDq8KadpGLyeLzvrgIlNUzTiAzotI",
+  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMS5wbmciLCJpYXQiOjE3NjkwMTIzMDMsImV4cCI6MTgwMDU0ODMwM30.jZeDXkrAZgxMkZzSE0d0ypQ4UvHHmOvYZKhUg_0PzMM",
+  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMi5wbmciLCJpYXQiOjE3NjkwMTIzMTUsImV4cCI6MTgwMDU0ODMxNX0.34X6MPPXTrfGN42sdK5W2BB9cbBAFh-rYQW3gPe1RGk",
+  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMy5wbmciLCJpYXQiOjE3NjkwMTIzMjUsImV4cCI6MTgwMDU0ODMyNX0.EkidMmS689A40Wgsa1n1wRw97_wzgNLuwNrOk0N2-AE",
+  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNC5wbmciLCJpYXQiOjE3NjkwMTIzMzgsImV4cCI6MTgwMDU0ODMzOH0.dLbHY9j45fhKkdbtvdqdYw7X7x7UDDnaHuEAEdkAf5o",
+  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNS5wbmciLCJpYXQiOjE3NjkwMTIzNTAsImV4cCI6MTgwMDU0ODM1MH0.sTYJHLJJqvwNSByi8PS7sH5OIViBh2KcnzV10ajrJtk",
 };
 
-const PLEASE_SEND_PHOTO_TEXT = `
-❌ ไม่สามารถวิเคราะห์ภาพนี้ได้
+// =======================
+// ERROR MESSAGES (แยกชัดเจน)
+// =======================
+const ERROR_NO_FACE = `
+❌ ไม่พบใบหน้าคนในภาพ
 
 📸 กรุณาส่งรูปใหม่ที่:
-- เป็นรูปคน
+- เห็นใบหน้าชัด
 - มีคนเดียวในภาพ
-- เห็นรูปร่างหรือใบหน้าชัดเจน
 - แสงสว่างเพียงพอ
 `.trim();
 
+const ERROR_LOW_CONF = `
+⚠️ ภาพไม่ชัดหรือมุมไม่เหมาะสม
+
+📸 กรุณาลองถ่ายใหม่:
+- หน้าตรง
+- ไม่ไกลเกินไป
+- ไม่ย้อนแสง
+`.trim();
+
+const ERROR_SYSTEM = `
+❌ ระบบไม่สามารถวิเคราะห์ภาพนี้ได้
+กรุณาลองใหม่อีกครั้งภายหลัง
+`.trim();
 
 // =======================
 // HELPERS
@@ -121,7 +139,6 @@ app.post("/webhook", async (req, res) => {
     return;
   }
 
-  // ต้องตอบ 200 ให้ LINE ทันที
   res.sendStatus(200);
 
   const events = req.body?.events;
@@ -133,96 +150,68 @@ app.post("/webhook", async (req, res) => {
 
     try {
       // =======================
-      // TEXT (Rich Menu / พิมพ์)
+      // IMAGE ONLY
       // =======================
-      if (event.message.type === "text") {
-        const text = event.message.text.trim();
+      if (event.message.type !== "image") continue;
 
-        // ผู้ใช้กดเมนู FACE 2 BMI
-        if (text === "FACE 2 BMI") {
-          await replyLine(replyToken, [
-            { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
-          ]);
-          continue;
+      const { bytes, contentType } = await getLineImageContent(event.message.id);
+
+      const form = new FormData();
+      form.append("file", bytes, {
+        filename: contentType.includes("png") ? "image.png" : "image.jpg",
+        contentType,
+      });
+
+      const aiRes = await axios.post(
+        normalizePredictUrl(AI_API_URL),
+        form,
+        { headers: form.getHeaders(), validateStatus: () => true }
+      );
+
+      // ❌ AI reject
+      if (aiRes.status === 422) {
+        const detail = aiRes.data?.detail || "";
+        if (detail.includes("face")) {
+          await replyLine(replyToken, [{ type: "text", text: ERROR_NO_FACE }]);
+        } else if (detail.includes("confidence")) {
+          await replyLine(replyToken, [{ type: "text", text: ERROR_LOW_CONF }]);
+        } else {
+          await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
         }
-
-        // เมนูข้อมูล → ไม่ตอบอะไรเพิ่ม
-        if (
-          text === "BMI คืออะไร" ||
-          text === "วิธีการถ่ายรูป" ||
-          text === "ความเป็นส่วนตัว"
-        ) {
-          continue;
-        }
-
-        // พิมพ์อย่างอื่น
-        await replyLine(replyToken, [
-          {
-            type: "text",
-            text: "ℹ️ กรุณาใช้เมนูด้านล่าง หรือส่งรูปเพื่อให้ AI วิเคราะห์ครับ",
-          },
-        ]);
         continue;
       }
 
-      // =======================
-      // IMAGE → วิเคราะห์ BMI
-      // =======================
-      if (event.message.type === "image") {
-        const { bytes, contentType } = await getLineImageContent(
-          event.message.id
-        );
+      if (aiRes.status !== 200) {
+        await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
+        continue;
+      }
 
-        const form = new FormData();
-        form.append("file", bytes, {
-          filename: contentType.includes("png") ? "image.png" : "image.jpg",
-          contentType,
-        });
+      const { class_id, confidence } = aiRes.data;
 
-        const aiRes = await axios.post(
-          normalizePredictUrl(AI_API_URL),
-          form,
-          { headers: form.getHeaders(), validateStatus: () => true }
-        );
+      if (typeof class_id !== "number") {
+        await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
+        continue;
+      }
 
-        // AI ปฏิเสธ (เช่น ไม่เจอหน้า)
-        if (aiRes.status !== 200) {
-          await replyLine(replyToken, [
-            { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
-          ]);
-          continue;
-        }
-
-        const { class_id, confidence } = aiRes.data;
-
-        // ถ้าไม่มี class_id = วิเคราะห์ไม่ได้
-        if (typeof class_id !== "number") {
-          await replyLine(replyToken, [
-            { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
-          ]);
-          continue;
-        }
-
-        // ✅ ส่งผลลัพธ์เสมอ
-        await replyLine(replyToken, [
-          {
-            type: "text",
-            text: `✅ AI วิเคราะห์สำเร็จ
+      // ✅ SUCCESS
+      await replyLine(replyToken, [
+        {
+          type: "text",
+          text: `✅ AI วิเคราะห์สำเร็จ
 ━━━━━━━━━━━━━━
 ${CLASS_NAMES_ASIA_5[class_id]}
-${confidence !== undefined ? `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%` : ""}`,
-          },
-          {
-            type: "image",
-            originalContentUrl: BMI_IMAGE_MAP[class_id],
-            previewImageUrl: BMI_IMAGE_MAP[class_id],
-          },
-        ]);
-      }
+${confidence ? `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%` : ""}`,
+        },
+        {
+          type: "image",
+          originalContentUrl: BMI_IMAGE_MAP[class_id],
+          previewImageUrl: BMI_IMAGE_MAP[class_id],
+        },
+      ]);
     } catch (err) {
       console.error(err);
       await replyLine(replyToken, [
-        { type: "text", text: "ขออภัย ระบบมีปัญหาชั่วคราว 😢" },
+        { type: "text", text: ERROR_SYSTEM },
       ]);
     }
   }
