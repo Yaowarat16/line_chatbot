@@ -54,11 +54,11 @@ const CLASS_NAMES_ASIA_5 = [
 // 🔴 เปลี่ยน URL เป็นของคุณเอง
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "https://cure.ae/uploads/image/blog/screen-shot-2023-02-07-at-4-13-55-pm.png",
-  1: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbGn-ET3-i2qJbYULx1xxzU9KUQLoAj_7-Fw&s",
-  2: "https://img.freepik.com/free-vector/body-mass-index-scale-illustration_1308-169088.jpg?semt=ais_hybrid&w=740&q=80",
-  3: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQTnu-8JgrjGU0szBegT2tEs2Q5MSWnyYozA&s",
-  4: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7ExgfZOdRLezY1woP-Dz8iRhPcY9kjB4I0A&s",
+  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/Lower%2018.5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL0xvd2VyIDE4LjUucG5nIiwiaWF0IjoxNzY5MDAxNjc5LCJleHAiOjE4MDA1Mzc2Nzl9.6rwYWECNk76FBpRkBLZScqdZkVMhQnseZPBLYc2QIl8",
+  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/18.5-22.9.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JLzE4LjUtMjIuOS5wbmciLCJpYXQiOjE3NjkwMDE2OTYsImV4cCI6MTgwMDUzNzY5Nn0.UHjXX4QbGx8YbuBygmQFfKNzU6w5ME5hQDWIuzcsuoM",
+  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/23-24.90.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JLzIzLTI0LjkwLnBuZyIsImlhdCI6MTc2OTAwMTcxMiwiZXhwIjoxODAwNTM3NzEyfQ.QCLmRnUqbngRnn05Uiw-uylaI_r3UkUqyM5bC_dsaMc",
+  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/Lower%2018.5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL0xvd2VyIDE4LjUucG5nIiwiaWF0IjoxNzY5MDAxNzM2LCJleHAiOjE4MDA1Mzc3MzZ9.Ib7CigMk8Rcl8vkl_RWBn6acZdAI6BoGJiiIhS6MIBg",
+  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/More%2030.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL01vcmUgMzAucG5nIiwiaWF0IjoxNzY5MDAxNzUwLCJleHAiOjE4MDA1Mzc3NTB9.mFlLK0XOlgPd54q_5gpIATrRIHNSQfLmiOV1oKP6bi8",
 };
 
 // =======================
