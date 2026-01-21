@@ -5,7 +5,6 @@ import FormData from "form-data";
 import crypto from "crypto";
 
 dotenv.config();
-
 const app = express();
 
 // =======================
@@ -49,15 +48,15 @@ const CLASS_NAMES_ASIA_5 = [
 // BMI IMAGE MAP
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMS5wbmciLCJpYXQiOjE3NjkwMTIzMDMsImV4cCI6MTgwMDU0ODMwM30.jZeDXkrAZgxMkZzSE0d0ypQ4UvHHmOvYZKhUg_0PzMM",
-  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMi5wbmciLCJpYXQiOjE3NjkwMTIzMTUsImV4cCI6MTgwMDU0ODMxNX0.34X6MPPXTrfGN42sdK5W2BB9cbBAFh-rYQW3gPe1RGk",
-  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMy5wbmciLCJpYXQiOjE3NjkwMTIzMjUsImV4cCI6MTgwMDU0ODMyNX0.EkidMmS689A40Wgsa1n1wRw97_wzgNLuwNrOk0N2-AE",
-  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNC5wbmciLCJpYXQiOjE3NjkwMTIzMzgsImV4cCI6MTgwMDU0ODMzOH0.dLbHY9j45fhKkdbtvdqdYw7X7x7UDDnaHuEAEdkAf5o",
-  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNS5wbmciLCJpYXQiOjE3NjkwMTIzNTAsImV4cCI6MTgwMDU0ODM1MH0.sTYJHLJJqvwNSByi8PS7sH5OIViBh2KcnzV10ajrJtk",
+  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMS5wbmciLCJpYXQiOjE3NjkwMTMwNDgsImV4cCI6MTgwMDU0OTA0OH0.oKZUKSEn46hHDf_fyVl7z6xHMCIMQIoJK3FULc4EfKs",
+  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMi5wbmciLCJpYXQiOjE3NjkwMTMwNTYsImV4cCI6MTgwMDU0OTA1Nn0.2JBzkztBP726679zAW3b-R2PbofgtYfrujzY6xALYJs",
+  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMy5wbmciLCJpYXQiOjE3NjkwMTMwNjgsImV4cCI6MTgwMDU0OTA2OH0.qMp5qomUpFbF0_2FxQnq_HN16sQk8WJQPKNiCiAeF84",
+  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNC5wbmciLCJpYXQiOjE3NjkwMTMwODIsImV4cCI6MTgwMDU0OTA4Mn0.VdehAt1TTcvMUAPhuwXHBY9U62DQPy8hHYhpq8CF0Cw",
+  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNS5wbmciLCJpYXQiOjE3NjkwMTMwOTYsImV4cCI6MTgwMDU0OTA5Nn0.hFlEWtFcHAB6M3NbiAVO9SjEy4BeM6BHJOTrJXnNy_4",
 };
 
 // =======================
-// ERROR MESSAGES (แยกชัดเจน)
+// ERROR MESSAGES
 // =======================
 const ERROR_NO_FACE = `
 ❌ ไม่พบใบหน้าคนในภาพ
@@ -66,6 +65,12 @@ const ERROR_NO_FACE = `
 - เห็นใบหน้าชัด
 - มีคนเดียวในภาพ
 - แสงสว่างเพียงพอ
+`.trim();
+
+const ERROR_MULTI_FACE = `
+⚠️ ตรวจพบหลายใบหน้าในภาพ
+
+📸 กรุณาส่งรูปที่มีเพียง 1 คน
 `.trim();
 
 const ERROR_LOW_CONF = `
@@ -149,9 +154,6 @@ app.post("/webhook", async (req, res) => {
     if (!replyToken || event.type !== "message") continue;
 
     try {
-      // =======================
-      // IMAGE ONLY
-      // =======================
       if (event.message.type !== "image") continue;
 
       const { bytes, contentType } = await getLineImageContent(event.message.id);
@@ -165,42 +167,50 @@ app.post("/webhook", async (req, res) => {
       const aiRes = await axios.post(
         normalizePredictUrl(AI_API_URL),
         form,
-        { headers: form.getHeaders(), validateStatus: () => true }
+        { headers: form.getHeaders() }
       );
 
-      // ❌ AI reject
-      if (aiRes.status === 422) {
-        const detail = aiRes.data?.detail || "";
-        if (detail.includes("face")) {
-          await replyLine(replyToken, [{ type: "text", text: ERROR_NO_FACE }]);
-        } else if (detail.includes("confidence")) {
-          await replyLine(replyToken, [{ type: "text", text: ERROR_LOW_CONF }]);
-        } else {
-          await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
-        }
+      const {
+        class_id,
+        confidence,
+        has_face,
+        face_count,
+        low_confidence,
+      } = aiRes.data || {};
+
+      // =======================
+      // 🧠 DECISION LOGIC
+      // =======================
+      if (!has_face) {
+        await replyLine(replyToken, [{ type: "text", text: ERROR_NO_FACE }]);
         continue;
       }
 
-      if (aiRes.status !== 200) {
-        await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
+      if (face_count > 1) {
+        await replyLine(replyToken, [{ type: "text", text: ERROR_MULTI_FACE }]);
         continue;
       }
 
-      const { class_id, confidence } = aiRes.data;
+      if (low_confidence) {
+        await replyLine(replyToken, [{ type: "text", text: ERROR_LOW_CONF }]);
+        continue;
+      }
 
       if (typeof class_id !== "number") {
         await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
         continue;
       }
 
+      // =======================
       // ✅ SUCCESS
+      // =======================
       await replyLine(replyToken, [
         {
           type: "text",
           text: `✅ AI วิเคราะห์สำเร็จ
 ━━━━━━━━━━━━━━
 ${CLASS_NAMES_ASIA_5[class_id]}
-${confidence ? `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%` : ""}`,
+ความมั่นใจ: ${(confidence * 100).toFixed(2)}%`,
         },
         {
           type: "image",
