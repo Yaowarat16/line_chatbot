@@ -35,19 +35,16 @@ if (!AI_API_URL) throw new Error("❌ AI_API_URL not set");
 const VERIFY_SIGNATURE = Boolean(LINE_CHANNEL_SECRET);
 
 // =======================
-// BMI TEXT (5 CLASSES)
+// BMI TEXT + IMAGE
 // =======================
 const CLASS_NAMES_ASIA_5 = [
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ < 18.5 (น้ำหนักน้อยกว่าเกณฑ์/ผอม)",
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 18.5 – 22.9 (ปกติ/สมส่วน)",
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 23.0 – 24.9 (น้ำหนักเกิน/ท้วม)",
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 25.0 – 29.9 (อ้วนระดับ 1)",
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ ≥ 30.0 (อ้วนระดับ 2)",
+  "BMI < 18.5 (ผอม)",
+  "BMI 18.5 – 22.9 (ปกติ)",
+  "BMI 23.0 – 24.9 (ท้วม)",
+  "BMI 25.0 – 29.9 (อ้วนระดับ 1)",
+  "BMI ≥ 30.0 (อ้วนระดับ 2)",
 ];
 
-// =======================
-// BMI IMAGE MAP
-// =======================
 const BMI_IMAGE_MAP = {
   0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class1.png",
   1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class2.png",
@@ -56,20 +53,10 @@ const BMI_IMAGE_MAP = {
   4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/public/Pic-BMI/class5.png",
 };
 
-// =======================
-// OTHER CONFIG
-// =======================
 const MIN_CONFIDENCE = Number(process.env.MIN_CONFIDENCE ?? 0.45);
 
-const PLEASE_SEND_NEW_HUMAN_PHOTO = `
-❌ ไม่สามารถวิเคราะห์ภาพนี้ได้
-
-📸 กรุณาส่งรูปใหม่ที่:
-- เป็นรูปคน
-- มีคนเดียวในภาพ
-- เห็นรูปร่างชัด
-- แสงสว่างเพียงพอ
-`.trim();
+const PLEASE_SEND_PHOTO_TEXT =
+  "📸 กรุณาส่งรูปใบหน้าของคุณเพื่อให้ AI วิเคราะห์ครับ";
 
 // =======================
 // HELPERS
@@ -135,68 +122,93 @@ app.post("/webhook", async (req, res) => {
 
   for (const event of events) {
     const replyToken = event.replyToken;
-    if (!replyToken) continue;
+    if (!replyToken || event.type !== "message") continue;
 
     try {
-      // 1️⃣ ไม่ใช่ message → ไม่ตอบ
-      if (event.type !== "message") continue;
+      // =======================
+      // 🟢 TEXT (Rich Menu / พิมพ์)
+      // =======================
+      if (event.message.type === "text") {
+        const text = event.message.text.trim();
 
-      // 2️⃣ message แต่ไม่ใช่รูป → บอกให้ส่งรูป
-      if (event.message.type !== "image") {
+        // เมนู FACE 2 BMI
+        if (text === "FACE 2 BMI") {
+          await replyLine(replyToken, [
+            { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
+          ]);
+          continue;
+        }
+
+        // เมนูอื่น → ไม่ต้องขึ้น “กรุณาส่งรูป”
+        if (
+          text === "BMI คืออะไร" ||
+          text === "วิธีการถ่ายรูป" ||
+          text === "ความเป็นส่วนตัว"
+        ) {
+          continue;
+        }
+
+        // พิมพ์มั่ว
         await replyLine(replyToken, [
           {
             type: "text",
-            text: "📸 กรุณาส่งรูปภาพเพื่อให้ AI วิเคราะห์นะครับ",
+            text: "ℹ️ กรุณาใช้เมนูด้านล่าง หรือส่งรูปเพื่อให้ AI วิเคราะห์ครับ",
           },
         ]);
         continue;
       }
 
-      // 3️⃣ เป็นรูป → ส่งให้ AI
-      const { bytes, contentType } = await getLineImageContent(event.message.id);
+      // =======================
+      // 🟢 IMAGE → วิเคราะห์
+      // =======================
+      if (event.message.type === "image") {
+        const { bytes, contentType } = await getLineImageContent(
+          event.message.id
+        );
 
-      const form = new FormData();
-      form.append("file", bytes, {
-        filename: contentType.includes("png") ? "image.png" : "image.jpg",
-        contentType,
-      });
+        const form = new FormData();
+        form.append("file", bytes, {
+          filename: contentType.includes("png") ? "image.png" : "image.jpg",
+          contentType,
+        });
 
-      const aiRes = await axios.post(
-        normalizePredictUrl(AI_API_URL),
-        form,
-        { headers: form.getHeaders(), validateStatus: () => true }
-      );
+        const aiRes = await axios.post(
+          normalizePredictUrl(AI_API_URL),
+          form,
+          { headers: form.getHeaders(), validateStatus: () => true }
+        );
 
-      // ❌ AI วิเคราะห์ไม่ผ่าน → ส่งข้อความ error
-      if (aiRes.status !== 200) {
-        await replyLine(replyToken, [{ type: "text", text: PLEASE_SEND_NEW_HUMAN_PHOTO }]);
-        continue;
+        if (aiRes.status !== 200) {
+          await replyLine(replyToken, [
+            { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
+          ]);
+          continue;
+        }
+
+        const { class_id, confidence } = aiRes.data;
+
+        if (
+          typeof class_id !== "number" ||
+          confidence < MIN_CONFIDENCE
+        ) {
+          await replyLine(replyToken, [
+            { type: "text", text: PLEASE_SEND_PHOTO_TEXT },
+          ]);
+          continue;
+        }
+
+        await replyLine(replyToken, [
+          {
+            type: "text",
+            text: `✅ AI วิเคราะห์สำเร็จ\n${CLASS_NAMES_ASIA_5[class_id]}\nความมั่นใจ: ${(confidence * 100).toFixed(2)}%`,
+          },
+          {
+            type: "image",
+            originalContentUrl: BMI_IMAGE_MAP[class_id],
+            previewImageUrl: BMI_IMAGE_MAP[class_id],
+          },
+        ]);
       }
-
-      const { class_id, confidence } = aiRes.data;
-
-      if (typeof class_id !== "number" || confidence < MIN_CONFIDENCE) {
-        await replyLine(replyToken, [{ type: "text", text: PLEASE_SEND_NEW_HUMAN_PHOTO }]);
-        continue;
-      }
-
-      // ✅ วิเคราะห์ผ่าน → ส่งข้อความ + รูป
-      await replyLine(replyToken, [
-        {
-          type: "text",
-          text: `
-✅ AI วิเคราะห์สำเร็จ
-━━━━━━━━━━━━━━
-${CLASS_NAMES_ASIA_5[class_id]}
-ความมั่นใจ: ${(confidence * 100).toFixed(2)}%
-          `.trim(),
-        },
-        {
-          type: "image",
-          originalContentUrl: BMI_IMAGE_MAP[class_id],
-          previewImageUrl: BMI_IMAGE_MAP[class_id],
-        },
-      ]);
     } catch (err) {
       console.error(err);
       await replyLine(replyToken, [
@@ -207,9 +219,6 @@ ${CLASS_NAMES_ASIA_5[class_id]}
 });
 
 // =======================
-// START SERVER
-// =======================
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`✅ LINE Bot running on port ${PORT}`);
-});
+app.listen(process.env.PORT || 10000, () =>
+  console.log("✅ LINE Bot running")
+);
