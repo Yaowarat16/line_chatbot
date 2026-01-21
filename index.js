@@ -8,7 +8,9 @@ dotenv.config();
 
 const app = express();
 
-// เก็บ raw body เพื่อ verify signature ของ LINE
+// =======================
+// RAW BODY (verify signature)
+// =======================
 app.use(
   express.json({
     verify: (req, res, buf) => {
@@ -25,47 +27,61 @@ const LINE_CONTENT_API = "https://api-data.line.me/v2/bot/message";
 
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const LINE_CHANNEL_SECRET = process.env.LINE_CHANNEL_SECRET;
-
-// AI_API_URL รองรับ 2 แบบ:
-// - https://xxx.onrender.com
-// - https://xxx.onrender.com/predict
 const AI_API_URL = process.env.AI_API_URL;
 
-if (!LINE_CHANNEL_ACCESS_TOKEN) throw new Error("❌ LINE_CHANNEL_ACCESS_TOKEN not set");
-if (!AI_API_URL) throw new Error("❌ AI_API_URL not set");
+if (!LINE_CHANNEL_ACCESS_TOKEN) {
+  throw new Error("❌ LINE_CHANNEL_ACCESS_TOKEN not set");
+}
+if (!AI_API_URL) {
+  throw new Error("❌ AI_API_URL not set");
+}
 
-// จะ verify signature ก็ต่อเมื่อมี secret
 const VERIFY_SIGNATURE = Boolean(LINE_CHANNEL_SECRET);
 
-// ชื่อคลาสตามเกณฑ์ BMI คนเอเชีย 5 คลาส
+// =======================
+// BMI TEXT (5 CLASSES)
+// =======================
 const CLASS_NAMES_ASIA_5 = [
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ < 18.5 (น้ำหนักน้อยกว่าเกณฑ์/ผอม)", // < 18.5
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 18.5 – 22.9 (ปกติ/สมส่วน)",               // 18.5 - 22.9
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 23.0 – 24.9 (น้ำหนักเกิน/ท้วม)",          // 23.0 - 24.9
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 25.0 – 29.9 (อ้วนระดับ 1)",               // 25.0 - 29.9
-  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ ≥ 30.0 (อ้วนระดับ 2)",               // >= 30.0
+  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ < 18.5 (น้ำหนักน้อยกว่าเกณฑ์/ผอม)",
+  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 18.5 – 22.9 (ปกติ/สมส่วน)",
+  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 23.0 – 24.9 (น้ำหนักเกิน/ท้วม)",
+  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ 25.0 – 29.9 (อ้วนระดับ 1)",
+  "จากการประเมินโดย AI รูปร่างของคุณสอดคล้องกับช่วง BMI ประมาณ ≥ 30.0 (อ้วนระดับ 2)",
 ];
 
-// ข้อความมาตรฐาน: ให้ผู้ใช้ส่งรูปใหม่ (รูปคน)
-const PLEASE_SEND_NEW_HUMAN_PHOTO = `
-❌ หากภาพนี้ไม่ใช่ “รูปใบหน้าคน” ไม่สามารถวิเคราะห์ได้ค่ะ
+// =======================
+// BMI IMAGE MAP (5 IMAGES)
+// 🔴 เปลี่ยน URL เป็นของคุณเอง
+// =======================
+const BMI_IMAGE_MAP = {
+  0: "https://cure.ae/uploads/image/blog/screen-shot-2023-02-07-at-4-13-55-pm.png",
+  1: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbGn-ET3-i2qJbYULx1xxzU9KUQLoAj_7-Fw&s",
+  2: "https://img.freepik.com/free-vector/body-mass-index-scale-illustration_1308-169088.jpg?semt=ais_hybrid&w=740&q=80",
+  3: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQTnu-8JgrjGU0szBegT2tEs2Q5MSWnyYozA&s",
+  4: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7ExgfZOdRLezY1woP-Dz8iRhPcY9kjB4I0A&s",
+};
 
-📸 กรุณาส่งรูปใหม่ที่:
-- แสงสว่างพอ ไม่มืด/ไม่ย้อนแสง
-- มีคนเดียวในภาพ
-- ไม่ไกล/ไม่เบลอ
-`.trim();
-
-// ตั้ง threshold ความมั่นใจขั้นต่ำ (ปรับได้จาก Render ENV: MIN_CONFIDENCE)
+// =======================
+// OTHER CONFIG
+// =======================
 const MIN_CONFIDENCE = Number(process.env.MIN_CONFIDENCE ?? 0.45);
 
+const PLEASE_SEND_NEW_HUMAN_PHOTO = `
+❌ ไม่สามารถวิเคราะห์ภาพนี้ได้
+
+📸 กรุณาส่งรูปใหม่ที่:
+- เป็นรูปคน
+- มีคนเดียวในภาพ
+- เห็นรูปร่างชัด
+- แสงสว่างเพียงพอ
+`.trim();
+
 // =======================
-// Helpers
+// HELPERS
 // =======================
-function normalizePredictUrl(aiApiUrl) {
-  const trimmed = aiApiUrl.replace(/\/+$/, "");
-  if (trimmed.endsWith("/predict")) return trimmed;
-  return `${trimmed}/predict`;
+function normalizePredictUrl(url) {
+  const t = url.replace(/\/+$/, "");
+  return t.endsWith("/predict") ? t : `${t}/predict`;
 }
 
 function verifyLineSignature(req) {
@@ -82,15 +98,7 @@ function verifyLineSignature(req) {
   return hash === signature;
 }
 
-function interpretBmiAsia(bmi) {
-  if (bmi < 18.5) return { label: CLASS_NAMES_ASIA_5[0], classId: 0 };
-  if (bmi < 23.0) return { label: CLASS_NAMES_ASIA_5[1], classId: 1 };
-  if (bmi < 25.0) return { label: CLASS_NAMES_ASIA_5[2], classId: 2 };
-  if (bmi < 30.0) return { label: CLASS_NAMES_ASIA_5[3], classId: 3 };
-  return { label: CLASS_NAMES_ASIA_5[4], classId: 4 };
-}
-
-async function replyLine(replyToken, text) {
+async function replyLineText(replyToken, text) {
   await axios.post(
     LINE_REPLY_API,
     {
@@ -102,7 +110,29 @@ async function replyLine(replyToken, text) {
         Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
       },
-      timeout: 10000,
+    }
+  );
+}
+
+async function replyLineTextAndImage(replyToken, text, imageUrl) {
+  await axios.post(
+    LINE_REPLY_API,
+    {
+      replyToken,
+      messages: [
+        { type: "text", text },
+        {
+          type: "image",
+          originalContentUrl: imageUrl,
+          previewImageUrl: imageUrl,
+        },
+      ],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
     }
   );
 }
@@ -112,7 +142,6 @@ async function getLineImageContent(messageId) {
   const res = await axios.get(url, {
     headers: { Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` },
     responseType: "arraybuffer",
-    timeout: 15000,
   });
 
   return {
@@ -122,7 +151,7 @@ async function getLineImageContent(messageId) {
 }
 
 // =======================
-// HEALTH CHECK (Render)
+// HEALTH CHECK
 // =======================
 app.get("/", (req, res) => {
   res.json({ status: "ok", service: "LINE BMI Bot" });
@@ -132,130 +161,85 @@ app.get("/", (req, res) => {
 // LINE WEBHOOK
 // =======================
 app.post("/webhook", async (req, res) => {
-  // 0) Verify signature (ถ้ามี secret)
   if (!verifyLineSignature(req)) {
     res.status(401).send("Invalid signature");
     return;
   }
 
-  // 1) ตอบ LINE ทันที ป้องกัน timeout
+  // ตอบ LINE ทันที
   res.sendStatus(200);
 
   const events = req.body?.events;
-  if (!Array.isArray(events) || events.length === 0) return;
+  if (!Array.isArray(events)) return;
 
   for (const event of events) {
     const replyToken = event.replyToken;
     if (!replyToken) continue;
 
     try {
-      // รับเฉพาะ message event
-      if (event.type !== "message" || !event.message) {
-        await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+      // รับเฉพาะรูป
+      if (event.type !== "message" || event.message.type !== "image") {
+        await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
         continue;
       }
 
-      // ถ้าไม่ใช่รูปภาพ
-      if (event.message.type !== "image") {
-        await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
-        continue;
-      }
+      // โหลดรูปจาก LINE
+      const { bytes, contentType } = await getLineImageContent(event.message.id);
 
-      const imageId = event.message.id;
-
-      // 2) โหลดรูปจาก LINE
-      const { bytes, contentType } = await getLineImageContent(imageId);
-
-      // 3) เตรียม multipart/form-data ให้ตรงกับ FastAPI: file: UploadFile
+      // เตรียมส่งไป AI
       const form = new FormData();
       const filename = contentType.includes("png") ? "image.png" : "image.jpg";
       form.append("file", bytes, { filename, contentType });
 
-      // 4) ส่งไป AI Backend
-      const predictUrl = normalizePredictUrl(AI_API_URL);
-
-      const aiRes = await axios.post(predictUrl, form, {
-        headers: {
-          ...form.getHeaders(),
-          Accept: "application/json",
-        },
-        timeout: 30000,
-        validateStatus: () => true, // ให้เราอ่าน body ได้แม้เป็น 4xx/5xx
-      });
-
-      // ✅ ถ้า AI ไม่ตอบ 200 ให้บอกส่งรูปใหม่ (สำหรับ 400/415/422) หรือแจ้ง error ทั่วไป
-      if (aiRes.status !== 200) {
-        console.error("AI ERROR:", aiRes.status, aiRes.data);
-
-        if (aiRes.status === 400 || aiRes.status === 415 || aiRes.status === 422) {
-          await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
-        } else {
-          await replyLine(replyToken, "ขออภัย ระบบมีปัญหาชั่วคราว 😢 ลองใหม่อีกครั้งนะคะ");
+      const aiRes = await axios.post(
+        normalizePredictUrl(AI_API_URL),
+        form,
+        {
+          headers: form.getHeaders(),
+          timeout: 30000,
+          validateStatus: () => true,
         }
+      );
+
+      if (aiRes.status !== 200) {
+        await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
         continue;
       }
 
-      const data = aiRes.data || {};
+      const data = aiRes.data;
 
-      // 5) เคส regression: backend ส่ง { bmi: number }
-      if (typeof data.bmi === "number") {
-        const bmi = data.bmi;
-        const { label } = interpretBmiAsia(bmi);
-
-        const replyText = `
-🧮 ผลการประเมิน BMI (เกณฑ์คนเอเชีย)
-━━━━━━━━━━━━━━
-ค่า BMI โดยประมาณ: ${bmi.toFixed(1)}
-สถานะ: ${label}
-
-⚠️ เป็นการประเมินจาก AI
-ไม่สามารถใช้แทนการตรวจวัดจริงได้
-`.trim();
-
-        await replyLine(replyToken, replyText);
-        continue;
-      }
-
-      // 6) เคส classification: backend ส่ง { class_id, class_name, confidence }
+      // ===== classification =====
       if (typeof data.class_id === "number") {
         const classId = data.class_id;
+        const conf = data.confidence ?? null;
 
-        const className =
-          CLASS_NAMES_ASIA_5[classId] ??
-          data.class_name ??
-          `class_${classId}`;
-
-        const conf =
-          typeof data.confidence === "number" ? data.confidence : null;
-
-        // ✅ confidence ต่ำมาก: ให้ส่งรูปใหม่ (มักจะเป็นรูปไม่ชัด/ไม่ใช่คน/ไม่เห็นรูปร่าง)
         if (conf !== null && conf < MIN_CONFIDENCE) {
-          await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+          await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
           continue;
         }
 
-        const confText =
-          conf !== null ? `\nความมั่นใจ: ${(conf * 100).toFixed(2)}%` : "";
-
-        const replyText = `
-✅ AI วิเคราะห์สำเร็จ 
+        const textReply = `
+✅ AI วิเคราะห์สำเร็จ
 ━━━━━━━━━━━━━━
-ผลลัพธ์: ${className}${confText}
+${CLASS_NAMES_ASIA_5[classId]}
+${conf !== null ? `\nความมั่นใจ: ${(conf * 100).toFixed(2)}%` : ""}
 `.trim();
 
-        await replyLine(replyToken, replyText);
+        const imageUrl = BMI_IMAGE_MAP[classId];
+
+        if (imageUrl) {
+          await replyLineTextAndImage(replyToken, textReply, imageUrl);
+        } else {
+          await replyLineText(replyToken, textReply);
+        }
+
         continue;
       }
 
-      // 7) format ไม่ตรงที่คาด → ให้ส่งรูปใหม่
-      console.warn("Unexpected AI response format:", data);
-      await replyLine(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
+      await replyLineText(replyToken, PLEASE_SEND_NEW_HUMAN_PHOTO);
     } catch (err) {
-      console.error("Webhook error:", err?.response?.data || err?.message || err);
-
-      try {
-        await replyLine(replyToken, "ขออภัย ระบบมีปัญหาชั่วคราว 😢");
-      } catch {}
+      console.error("Webhook error:", err);
+      await replyLineText(replyToken, "ขออภัย ระบบมีปัญหาชั่วคราว 😢");
     }
   }
 });
@@ -267,8 +251,6 @@ const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`✅ LINE Bot running on port ${PORT}`);
   console.log(`🔗 AI Predict URL: ${normalizePredictUrl(AI_API_URL)}`);
-  console.log(
-    `🔒 Verify Signature: ${VERIFY_SIGNATURE ? "ON" : "OFF (no LINE_CHANNEL_SECRET)"}`
-  );
+  console.log(`🔒 Verify Signature: ${VERIFY_SIGNATURE ? "ON" : "OFF"}`);
   console.log(`🎚️ MIN_CONFIDENCE: ${MIN_CONFIDENCE}`);
 });
