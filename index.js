@@ -20,7 +20,7 @@ if (!LINE_CHANNEL_ACCESS_TOKEN) throw new Error("LINE_CHANNEL_ACCESS_TOKEN not s
 if (!AI_API_URL) throw new Error("AI_API_URL not set");
 
 // =======================
-// BMI TEXT MAP (ใช้ class_id เท่านั้น)
+// BMI TEXT MAP
 // =======================
 const BMI_BY_CLASS_ID = {
   0: "น้ำหนักน้อยกว่าเกณฑ์ (BMI < 18.5)",
@@ -31,7 +31,7 @@ const BMI_BY_CLASS_ID = {
 };
 
 // =======================
-// BMI IMAGE MAP
+// IMAGE MAP
 // =======================
 const BMI_IMAGE_MAP = {
   0: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMS5wbmciLCJpYXQiOjE3NzAyMDY2NTgsImV4cCI6MTgwMTc0MjY1OH0.mg1sZa8-PDSM73sNmPfmaYgs9xeccozjafawLA9sMVI",
@@ -42,7 +42,7 @@ const BMI_IMAGE_MAP = {
 };
 
 // =======================
-// 🏃‍♂️ EXERCISE VIDEO MAP
+// EXERCISE VIDEO MAP
 // =======================
 const EXERCISE_VIDEO_BY_CLASS_ID = {
   0: "https://www.youtube.com/watch?v=U0bhE67HuDY",
@@ -92,23 +92,54 @@ function nowThai() {
 // =======================
 app.post("/webhook", async (req, res) => {
   res.sendStatus(200);
-  const events = req.body.events || [];
 
+  const events = req.body.events || [];
   for (const event of events) {
+
+    // ⭐ DEBUG สำคัญมาก
+    console.log("EVENT:", JSON.stringify(event, null, 2));
+
     const replyToken = event.replyToken;
     if (!replyToken || event.type !== "message") continue;
 
     try {
       // =======================
-      // IMAGE MESSAGE
+      // 🟢 TEXT: "ประวัติ"
+      // =======================
+      if (event.message.type === "text") {
+        const text = event.message.text.trim();
+
+        if (text === "ประวัติ") {
+          const historyRes = await axios.get(
+            `${AI_API_URL.replace(/\/+$/, "")}/history?limit=5`
+          );
+
+          const history = historyRes.data.history || [];
+          let msg = "📊 ประวัติการประเมิน BMI (ล่าสุด)\n\n";
+
+          if (history.length === 0) {
+            msg += "ยังไม่มีประวัติการใช้งาน";
+          } else {
+            history.forEach((h, i) => {
+              msg +=
+                `${i + 1}) ${BMI_BY_CLASS_ID[h.class_id]}\n` +
+                `ความมั่นใจ: ${(h.confidence * 100).toFixed(1)}%\n` +
+                `จำนวนใบหน้า: ${h.face_count} คน\n` +
+                `🕒 ${h.created_at}\n\n`;
+            });
+          }
+
+          await replyLine(replyToken, [{ type: "text", text: msg }]);
+        }
+        continue;
+      }
+
+      // =======================
+      // 🟡 IMAGE: predict
       // =======================
       if (event.message.type === "image") {
-        // 1) ดึงรูปจาก LINE
-        const { bytes, contentType } = await getLineImageContent(
-          event.message.id
-        );
+        const { bytes, contentType } = await getLineImageContent(event.message.id);
 
-        // 2) ส่งไป FastAPI /predict
         const form = new FormData();
         form.append("file", bytes, {
           filename: "image.jpg",
@@ -121,44 +152,18 @@ app.post("/webhook", async (req, res) => {
           { headers: form.getHeaders() }
         );
 
-        const {
-          class_id,
-          confidence,
-          has_face,
-          low_confidence,
-        } = aiRes.data;
-
-        // =======================
-        // VALIDATION
-        // =======================
-        if (!has_face) {
-          await replyLine(replyToken, [
-            { type: "text", text: "❌ ไม่พบใบหน้าในภาพ กรุณาถ่ายใหม่" },
-          ]);
-          continue;
-        }
-
-        if (low_confidence) {
-          await replyLine(replyToken, [
-            { type: "text", text: "⚠️ ภาพไม่ชัด กรุณาถ่ายใหม่ให้หน้าตรงและชัดเจน" },
-          ]);
-          continue;
-        }
-
-        // =======================
-        // RESPONSE
-        // =======================
-        const replyText =
-          `✅ ผลการประเมินโดย AI\n` +
-          `━━━━━━━━━━━━━━\n` +
-          `สถานะ BMI: ${BMI_BY_CLASS_ID[class_id]}\n` +
-          `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%\n\n` +
-          `🏃‍♂️ คลิปออกกำลังกายที่เหมาะกับคุณ\n` +
-          `${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
-          `🕒 เวลาที่บอทตอบ: ${nowThai()}`;
+        const { class_id, confidence } = aiRes.data;
 
         await replyLine(replyToken, [
-          { type: "text", text: replyText },
+          {
+            type: "text",
+            text:
+              `✅ ผลการประเมินโดย AI\n` +
+              `สถานะ BMI: ${BMI_BY_CLASS_ID[class_id]}\n` +
+              `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%\n\n` +
+              `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
+              `🕒 ${nowThai()}`,
+          },
           {
             type: "image",
             originalContentUrl: BMI_IMAGE_MAP[class_id],
@@ -167,7 +172,7 @@ app.post("/webhook", async (req, res) => {
         ]);
       }
     } catch (err) {
-      console.error(err?.response?.data || err);
+      console.error(err);
       await replyLine(replyToken, [
         { type: "text", text: "❌ ระบบไม่สามารถประมวลผลได้ กรุณาลองใหม่" },
       ]);
@@ -175,7 +180,6 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-// =======================
 app.listen(10000, () =>
-  console.log("✅ LINE Bot running (Text + Image + Exercise Video)")
+  console.log("✅ LINE Bot running (Text + Image + History + Video)")
 );
