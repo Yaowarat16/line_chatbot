@@ -12,6 +12,7 @@ app.use(express.json());
 // =======================
 const LINE_REPLY_API = "https://api.line.me/v2/bot/message/reply";
 const LINE_CONTENT_API = "https://api-data.line.me/v2/bot/message";
+
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const AI_API_URL = process.env.AI_API_URL;
 
@@ -19,7 +20,7 @@ if (!LINE_CHANNEL_ACCESS_TOKEN) throw new Error("LINE_CHANNEL_ACCESS_TOKEN not s
 if (!AI_API_URL) throw new Error("AI_API_URL not set");
 
 // =======================
-// BMI MAP (ใช้ class_id เท่านั้น)
+// BMI TEXT MAP (ใช้ class_id เท่านั้น)
 // =======================
 const BMI_BY_CLASS_ID = {
   0: "น้ำหนักน้อยกว่าเกณฑ์ (BMI < 18.5)",
@@ -30,7 +31,18 @@ const BMI_BY_CLASS_ID = {
 };
 
 // =======================
-// Helpers
+// BMI IMAGE MAP
+// =======================
+const BMI_IMAGE_MAP = {
+  0: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMS5wbmciLCJpYXQiOjE3NzAyMDU0NjQsImV4cCI6MTgwMTc0MTQ2NH0.td_FMeTEjfeQrG0bmpXo3n9k2Xvkm5acQnLhKzkKBos",
+  1: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMi5wbmciLCJpYXQiOjE3NzAyMDU0ODAsImV4cCI6MTgwMTc0MTQ4MH0.LgwKS_7eTjIbS-EGhXhvrjbDmCjMsAtTuORPj77Uo74",
+  2: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMy5wbmciLCJpYXQiOjE3NzAyMDU0OTEsImV4cCI6MTgwMTc0MTQ5MX0.F99_ra062JCYqeVtDrCfmqbtwkaBSIbvgLd3asjb1Qs",
+  3: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNC5wbmciLCJpYXQiOjE3NzAyMDU1MDEsImV4cCI6MTgwMTc0MTUwMX0.MWY8tNIlDAfFcpR-rapXiJEpPA4GJscbRPnOlvwPNvs",
+  4: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNS5wbmciLCJpYXQiOjE3NzAyMDU1MTIsImV4cCI6MTgwMTc0MTUxMn0.hYIMJiSQp-fWNV3o7AG4No78eYcI0S8-XdkBS8zood8",
+};
+
+// =======================
+// HELPERS
 // =======================
 async function replyLine(replyToken, messages) {
   await axios.post(
@@ -48,9 +60,7 @@ async function replyLine(replyToken, messages) {
 async function getLineImageContent(messageId) {
   const url = `${LINE_CONTENT_API}/${messageId}/content`;
   const res = await axios.get(url, {
-    headers: {
-      Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
-    },
+    headers: { Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` },
     responseType: "arraybuffer",
   });
 
@@ -60,6 +70,7 @@ async function getLineImageContent(messageId) {
   };
 }
 
+// เวลาไทย
 function nowThai() {
   return new Date().toLocaleString("th-TH", {
     timeZone: "Asia/Bangkok",
@@ -79,15 +90,15 @@ app.post("/webhook", async (req, res) => {
 
     try {
       // =======================
-      // TEXT: history
+      // TEXT: "ประวัติ"
       // =======================
       if (event.message.type === "text") {
         if (event.message.text.trim() === "ประวัติ") {
           const historyRes = await axios.get(
             `${AI_API_URL.replace(/\/+$/, "")}/history?limit=5`
           );
-          const history = historyRes.data.history || [];
 
+          const history = historyRes.data.history || [];
           let msg = "📊 ประวัติการประเมิน BMI (ล่าสุด)\n\n";
 
           if (history.length === 0) {
@@ -100,7 +111,7 @@ app.post("/webhook", async (req, res) => {
                 `- ความมั่นใจ: ${(h.confidence * 100).toFixed(1)}%\n` +
                 `- ตรวจพบใบหน้า: ${h.has_face ? "พบ" : "ไม่พบ"}\n` +
                 `- จำนวนใบหน้า: ${h.face_count} คน\n` +
-                `- เวลาบันทึก: ${h.created_at}\n\n`;
+                `- เวลาที่บันทึก: ${h.created_at}\n\n`;
             });
           }
 
@@ -110,7 +121,7 @@ app.post("/webhook", async (req, res) => {
       }
 
       // =======================
-      // IMAGE: predict (⭐ จุดสำคัญ)
+      // IMAGE: Predict BMI
       // =======================
       if (event.message.type === "image") {
         // 1) ดึงรูปจาก LINE
@@ -118,14 +129,13 @@ app.post("/webhook", async (req, res) => {
           event.message.id
         );
 
-        // 2) สร้าง FormData
+        // 2) ส่งไป FastAPI
         const form = new FormData();
         form.append("file", bytes, {
           filename: contentType.includes("png") ? "image.png" : "image.jpg",
           contentType,
         });
 
-        // 3) ส่งไป FastAPI /predict
         const aiRes = await axios.post(
           `${AI_API_URL.replace(/\/+$/, "")}/predict`,
           form,
@@ -140,7 +150,7 @@ app.post("/webhook", async (req, res) => {
           low_confidence,
         } = aiRes.data;
 
-        // 4) ตรวจผล
+        // 3) ตรวจผลลัพธ์
         if (!has_face) {
           await replyLine(replyToken, [
             { type: "text", text: "❌ ไม่พบใบหน้าในภาพ กรุณาถ่ายใหม่" },
@@ -155,7 +165,7 @@ app.post("/webhook", async (req, res) => {
           continue;
         }
 
-        // 5) ตอบกลับผู้ใช้
+        // 4) ข้อความผลลัพธ์
         const resultText =
           `✅ ผลการประเมินโดย AI\n` +
           `━━━━━━━━━━━━━━\n` +
@@ -164,7 +174,15 @@ app.post("/webhook", async (req, res) => {
           `จำนวนใบหน้า: ${face_count} คน\n` +
           `🕒 เวลาที่บอทตอบ: ${nowThai()}`;
 
-        await replyLine(replyToken, [{ type: "text", text: resultText }]);
+        // 5) ส่งข้อความ + รูป
+        await replyLine(replyToken, [
+          { type: "text", text: resultText },
+          {
+            type: "image",
+            originalContentUrl: BMI_IMAGE_MAP[class_id],
+            previewImageUrl: BMI_IMAGE_MAP[class_id],
+          },
+        ]);
       }
     } catch (err) {
       console.error(err?.response?.data || err);
