@@ -20,7 +20,7 @@ if (!LINE_CHANNEL_ACCESS_TOKEN) throw new Error("LINE_CHANNEL_ACCESS_TOKEN not s
 if (!AI_API_URL) throw new Error("AI_API_URL not set");
 
 // =======================
-// BMI TEXT MAP
+// BMI TEXT MAP (ใช้ class_id เท่านั้น)
 // =======================
 const BMI_BY_CLASS_ID = {
   0: "น้ำหนักน้อยกว่าเกณฑ์ (BMI < 18.5)",
@@ -31,14 +31,14 @@ const BMI_BY_CLASS_ID = {
 };
 
 // =======================
-// BMI IMAGE MAP (⭐ รูปกลับมาแล้ว)
+// BMI IMAGE MAP
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMS5wbmciLCJpYXQiOjE3NzAyMDYxMzYsImV4cCI6MTgwMTc0MjEzNn0.XwJQzvrjksFRfjTwyxdCO-xBY-dhdI3WWaPr4h3yvKA",
-  1: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMi5wbmciLCJpYXQiOjE3NzAyMDYxNDMsImV4cCI6MTgwMTc0MjE0M30.ryzjAWitcZJtfyu1J-r2aZ4vcOaRNN8Es4XL5isfyfA",
-  2: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMy5wbmciLCJpYXQiOjE3NzAyMDYxNDgsImV4cCI6MTgwMTc0MjE0OH0.IeJzRh1ev05-aIukL4SadgRxxdRrqeWpbhEbjVvQ_kw",
-  3: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNC5wbmciLCJpYXQiOjE3NzAyMDYxNTgsImV4cCI6MTgwMTc0MjE1OH0.AoNGgJUve53SnpR03RM1_WeqfERrpAHlgueUYkBjl6s",
-  4: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNS5wbmciLCJpYXQiOjE3NzAyMDYxNjMsImV4cCI6MTgwMTc0MjE2M30.nphlpr2DD1SkgIlAtyaxl0nqEo2DBGgcr8XtHXwhftQ",
+  0: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMS5wbmciLCJpYXQiOjE3NzAyMDY2NTgsImV4cCI6MTgwMTc0MjY1OH0.mg1sZa8-PDSM73sNmPfmaYgs9xeccozjafawLA9sMVI",
+  1: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMi5wbmciLCJpYXQiOjE3NzAyMDY2NzAsImV4cCI6MTgwMTc0MjY3MH0.lpJQdMegEhxkwhLdqS9Zv8FdG-8gnCFHu0bgagL77Ek",
+  2: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMy5wbmciLCJpYXQiOjE3NzAyMDY2NzYsImV4cCI6MTgwMTc0MjY3Nn0.4Z9NgubdLjo4L5n7K7bi8ZgFmSqIJYvfo-v4QP_lFus",
+  3: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNC5wbmciLCJpYXQiOjE3NzAyMDY2ODIsImV4cCI6MTgwMTc0MjY4Mn0.hULVkrISskrkBfWnCu9bQTMEWIf7Zt6h0sbmtrUCV4g",
+  4: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNS5wbmciLCJpYXQiOjE3NzAyMDY2ODcsImV4cCI6MTgwMTc0MjY4N30.W0dVfqjgmaj6iVygksdLX8yFmOdLyL1N9UP3qjefek8",
 };
 
 // =======================
@@ -99,13 +99,16 @@ app.post("/webhook", async (req, res) => {
     if (!replyToken || event.type !== "message") continue;
 
     try {
+      // =======================
+      // IMAGE MESSAGE
+      // =======================
       if (event.message.type === "image") {
         // 1) ดึงรูปจาก LINE
         const { bytes, contentType } = await getLineImageContent(
           event.message.id
         );
 
-        // 2) ส่งไป FastAPI
+        // 2) ส่งไป FastAPI /predict
         const form = new FormData();
         form.append("file", bytes, {
           filename: "image.jpg",
@@ -118,8 +121,16 @@ app.post("/webhook", async (req, res) => {
           { headers: form.getHeaders() }
         );
 
-        const { class_id, confidence, has_face, low_confidence } = aiRes.data;
+        const {
+          class_id,
+          confidence,
+          has_face,
+          low_confidence,
+        } = aiRes.data;
 
+        // =======================
+        // VALIDATION
+        // =======================
         if (!has_face) {
           await replyLine(replyToken, [
             { type: "text", text: "❌ ไม่พบใบหน้าในภาพ กรุณาถ่ายใหม่" },
@@ -134,6 +145,9 @@ app.post("/webhook", async (req, res) => {
           continue;
         }
 
+        // =======================
+        // RESPONSE
+        // =======================
         const replyText =
           `✅ ผลการประเมินโดย AI\n` +
           `━━━━━━━━━━━━━━\n` +
@@ -143,7 +157,6 @@ app.post("/webhook", async (req, res) => {
           `${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
           `🕒 เวลาที่บอทตอบ: ${nowThai()}`;
 
-        // ⭐ ตรงนี้คือจุดที่ “รูปกลับมา”
         await replyLine(replyToken, [
           { type: "text", text: replyText },
           {
@@ -154,7 +167,7 @@ app.post("/webhook", async (req, res) => {
         ]);
       }
     } catch (err) {
-      console.error(err);
+      console.error(err?.response?.data || err);
       await replyLine(replyToken, [
         { type: "text", text: "❌ ระบบไม่สามารถประมวลผลได้ กรุณาลองใหม่" },
       ]);
@@ -162,6 +175,7 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
+// =======================
 app.listen(10000, () =>
-  console.log("✅ LINE Bot running (Text + Image + Video)")
+  console.log("✅ LINE Bot running (Text + Image + Exercise Video)")
 );
