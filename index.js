@@ -48,44 +48,20 @@ const CLASS_NAMES_ASIA_5 = [
 // BMI IMAGE MAP
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMS5wbmciLCJpYXQiOjE3NjkwMTMwNDgsImV4cCI6MTgwMDU0OTA0OH0.oKZUKSEn46hHDf_fyVl7z6xHMCIMQIoJK3FULc4EfKs",
-  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMi5wbmciLCJpYXQiOjE3NjkwMTMwNTYsImV4cCI6MTgwMDU0OTA1Nn0.2JBzkztBP726679zAW3b-R2PbofgtYfrujzY6xALYJs",
-  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzMy5wbmciLCJpYXQiOjE3NjkwMTMwNjgsImV4cCI6MTgwMDU0OTA2OH0.qMp5qomUpFbF0_2FxQnq_HN16sQk8WJQPKNiCiAeF84",
-  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNC5wbmciLCJpYXQiOjE3NjkwMTMwODIsImV4cCI6MTgwMDU0OTA4Mn0.VdehAt1TTcvMUAPhuwXHBY9U62DQPy8hHYhpq8CF0Cw",
-  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9kMWI1ZjZlOC02ZmYwLTQ5YTgtOGRhZS04MmMxMjBjN2EzYzUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWMtQk1JL2NsYXNzNS5wbmciLCJpYXQiOjE3NjkwMTMwOTYsImV4cCI6MTgwMDU0OTA5Nn0.hFlEWtFcHAB6M3NbiAVO9SjEy4BeM6BHJOTrJXnNy_4",
+  0: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class1.png",
+  1: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class2.png",
+  2: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class3.png",
+  3: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class4.png",
+  4: "https://ythflbepdywrvaotrkjo.supabase.co/storage/v1/object/sign/Pic-BMI/class5.png",
 };
 
 // =======================
 // ERROR MESSAGES
 // =======================
-const ERROR_NO_FACE = `
-❌ ไม่พบใบหน้าคนในภาพ
-
-📸 กรุณาส่งรูปใหม่ที่:
-- เห็นใบหน้าชัด
-- มีคนเดียวในภาพ
-- แสงสว่างเพียงพอ
-`.trim();
-
-const ERROR_MULTI_FACE = `
-⚠️ ตรวจพบหลายใบหน้าในภาพ
-
-📸 กรุณาส่งรูปที่มีเพียง 1 คน
-`.trim();
-
-const ERROR_LOW_CONF = `
-⚠️ ภาพไม่ชัดหรือมุมไม่เหมาะสม
-
-📸 กรุณาลองถ่ายใหม่:
-- หน้าตรง
-- ไม่ไกลเกินไป
-- ไม่ย้อนแสง
-`.trim();
-
-const ERROR_SYSTEM = `
-❌ ระบบไม่สามารถวิเคราะห์ภาพนี้ได้
-กรุณาลองใหม่อีกครั้งภายหลัง
-`.trim();
+const ERROR_NO_FACE = `❌ ไม่พบใบหน้าคนในภาพ`;
+const ERROR_MULTI_FACE = `⚠️ ตรวจพบหลายใบหน้าในภาพ`;
+const ERROR_LOW_CONF = `⚠️ ภาพไม่ชัดหรือมุมไม่เหมาะสม`;
+const ERROR_SYSTEM = `❌ ระบบไม่สามารถวิเคราะห์ภาพนี้ได้`;
 
 // =======================
 // HELPERS
@@ -97,7 +73,6 @@ function normalizePredictUrl(url) {
 
 function verifyLineSignature(req) {
   if (!VERIFY_SIGNATURE) return true;
-
   const signature = req.headers["x-line-signature"];
   if (!signature) return false;
 
@@ -154,13 +129,44 @@ app.post("/webhook", async (req, res) => {
     if (!replyToken || event.type !== "message") continue;
 
     try {
+      // =======================
+      // 🟢 TEXT: "ประวัติ"
+      // =======================
+      if (event.message.type === "text") {
+        const text = event.message.text.trim();
+
+        if (text === "ประวัติ" || text.toLowerCase() === "history") {
+          const historyRes = await axios.get(
+            `${AI_API_URL.replace(/\/+$/, "")}/history?limit=5`
+          );
+
+          const history = historyRes.data.history || [];
+          let reply = "📊 ประวัติการทำนาย BMI (ล่าสุด)\n\n";
+
+          if (history.length === 0) {
+            reply += "ยังไม่มีประวัติการใช้งาน";
+          } else {
+            history.forEach((h, i) => {
+              reply += `${i + 1}) ${h.bmi_class} (${(h.confidence * 100).toFixed(1)}%)\n`;
+              reply += `🕒 ${h.created_at}\n\n`;
+            });
+          }
+
+          await replyLine(replyToken, [{ type: "text", text: reply }]);
+        }
+        continue;
+      }
+
+      // =======================
+      // 🟡 IMAGE: predict BMI
+      // =======================
       if (event.message.type !== "image") continue;
 
       const { bytes, contentType } = await getLineImageContent(event.message.id);
 
       const form = new FormData();
       form.append("file", bytes, {
-        filename: contentType.includes("png") ? "image.png" : "image.jpg",
+        filename: "image.jpg",
         contentType,
       });
 
@@ -170,17 +176,8 @@ app.post("/webhook", async (req, res) => {
         { headers: form.getHeaders() }
       );
 
-      const {
-        class_id,
-        confidence,
-        has_face,
-        face_count,
-        low_confidence,
-      } = aiRes.data || {};
+      const { class_id, confidence, has_face, face_count, low_confidence } = aiRes.data;
 
-      // =======================
-      // 🧠 DECISION LOGIC
-      // =======================
       if (!has_face) {
         await replyLine(replyToken, [{ type: "text", text: ERROR_NO_FACE }]);
         continue;
@@ -196,21 +193,10 @@ app.post("/webhook", async (req, res) => {
         continue;
       }
 
-      if (typeof class_id !== "number") {
-        await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
-        continue;
-      }
-
-      // =======================
-      // ✅ SUCCESS
-      // =======================
       await replyLine(replyToken, [
         {
           type: "text",
-          text: `✅ AI วิเคราะห์สำเร็จ
-━━━━━━━━━━━━━━
-${CLASS_NAMES_ASIA_5[class_id]}
-ความมั่นใจ: ${(confidence * 100).toFixed(2)}%`,
+          text: `✅ AI วิเคราะห์สำเร็จ\n${CLASS_NAMES_ASIA_5[class_id]}\nความมั่นใจ: ${(confidence * 100).toFixed(2)}%`,
         },
         {
           type: "image",
@@ -220,9 +206,7 @@ ${CLASS_NAMES_ASIA_5[class_id]}
       ]);
     } catch (err) {
       console.error(err);
-      await replyLine(replyToken, [
-        { type: "text", text: ERROR_SYSTEM },
-      ]);
+      await replyLine(replyToken, [{ type: "text", text: ERROR_SYSTEM }]);
     }
   }
 });
