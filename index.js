@@ -36,18 +36,18 @@ const BMI_BY_CLASS_ID = {
 };
 
 // =======================
-// IMAGE MAP
+// IMAGE MAP (ต้องเป็น https public จริง)
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "URL_CLASS_1",
-  1: "URL_CLASS_2",
-  2: "URL_CLASS_3",
-  3: "URL_CLASS_4",
-  4: "URL_CLASS_5",
+  0: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMS5wbmciLCJpYXQiOjE3NzA4MTQwMTMsImV4cCI6MTgwMjM1MDAxM30.P1-o9drsgJr3KgQe9klFkdHvWbw1IWrKSPyd9gMvFRA",
+  1: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMi5wbmciLCJpYXQiOjE3NzA4MTQwMjUsImV4cCI6MTgwMjM1MDAyNX0.oj28iDEc0qvfUt5tMIMkaj-ylTAi30Qm1oHHTutVyX0",
+  2: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMy5wbmciLCJpYXQiOjE3NzA4MTQwMzcsImV4cCI6MTgwMjM1MDAzN30.IbATsCh50q1vj4MjyqiNdtu9lBFWD6RBZk-Lw2OpSBs",
+  3: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNC5wbmciLCJpYXQiOjE3NzA4MTQwNDMsImV4cCI6MTgwMjM1MDA0M30.seYFUtupddcnIB9IUN5LF4JyqhXKFFi620JmJq685FA",
+  4: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNS5wbmciLCJpYXQiOjE3NzA4MTQwNTYsImV4cCI6MTgwMjM1MDA1Nn0.SkqpI19Ci70O5y2XiXV645xHx20mv9P6hFTLBw1LrmE",
 };
 
 // =======================
-// EXERCISE VIDEO MAP
+// YOUTUBE MAP
 // =======================
 const EXERCISE_VIDEO_BY_CLASS_ID = {
   0: "https://www.youtube.com/watch?v=U0bhE67HuDY",
@@ -104,50 +104,16 @@ app.post("/webhook", async (req, res) => {
   const events = req.body.events || [];
 
   for (const event of events) {
-    console.log("EVENT:", JSON.stringify(event, null, 2));
-
     const replyToken = event.replyToken;
     if (!replyToken || event.type !== "message") continue;
 
     try {
-      // =======================
-      // TEXT: ประวัติ
-      // =======================
-      if (event.message.type === "text") {
-        const text = event.message.text.trim();
-
-        if (text === "ประวัติ") {
-          const historyRes = await axios.get(
-            `${AI_API_URL.replace(/\/+$/, "")}/history?limit=5`
-          );
-
-          const history = historyRes.data.history || [];
-          let msg = "📊 ประวัติการประเมิน BMI (ล่าสุด)\n\n";
-
-          if (history.length === 0) {
-            msg += "ยังไม่มีประวัติการใช้งาน";
-          } else {
-            history.forEach((h, i) => {
-              msg +=
-                `${i + 1}) ${BMI_BY_CLASS_ID[h.class_id]}\n` +
-                `ความมั่นใจ: ${h.confidence.toFixed(1)}%\n` +
-                `จำนวนใบหน้า: ${h.face_count} คน\n` +
-                `🕒 ${h.created_at}\n\n`;
-            });
-          }
-
-          await replyLine(replyToken, [
-            { type: "text", text: msg },
-          ]);
-        }
-
-        continue;
-      }
 
       // =======================
       // IMAGE: Predict
       // =======================
       if (event.message.type === "image") {
+
         const { bytes, contentType } =
           await getLineImageContent(event.message.id);
 
@@ -163,28 +129,35 @@ app.post("/webhook", async (req, res) => {
           { headers: form.getHeaders() }
         );
 
-        const { class_id, confidence } = aiRes.data;
+        const class_id = aiRes.data.class_id ?? -1;
+        const confidence = Number(aiRes.data.confidence ?? 0);
 
-        await replyLine(replyToken, [
-          {
-            type: "text",
-            text:
-              `✅ ผลการประเมินโดย AI\n` +
-              `สถานะ BMI: ${BMI_BY_CLASS_ID[class_id]}\n` +
-              `ความมั่นใจ: ${confidence.toFixed(2)}%\n\n` +
-              `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
-              `🕒 ${nowThai()}`,
-          },
-          {
+        const textReply =
+          `✅ ผลการประเมินโดย AI\n` +
+          `สถานะ BMI: ${BMI_BY_CLASS_ID[class_id] || "ไม่สามารถระบุได้"}\n` +
+          `ความมั่นใจ: ${confidence.toFixed(2)}%\n\n` +
+          `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
+          `🕒 ${nowThai()}`;
+
+        const messages = [
+          { type: "text", text: textReply }
+        ];
+
+        // 🔥 ใส่รูปเพิ่ม ถ้ามี URL จริง
+        if (BMI_IMAGE_MAP[class_id]?.startsWith("https")) {
+          messages.push({
             type: "image",
             originalContentUrl: BMI_IMAGE_MAP[class_id],
             previewImageUrl: BMI_IMAGE_MAP[class_id],
-          },
-        ]);
+          });
+        }
+
+        await replyLine(replyToken, messages);
       }
 
     } catch (err) {
-      console.error(err);
+      console.error("ERROR:", err?.response?.data || err.message);
+
       await replyLine(replyToken, [
         { type: "text", text: "❌ ระบบไม่สามารถประมวลผลได้ กรุณาลองใหม่" },
       ]);
@@ -192,6 +165,6 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-app.listen(10000, () =>
-  console.log("✅ LINE Bot running (Text + Image + History + Video)")
+app.listen(process.env.PORT || 10000, () =>
+  console.log("✅ LINE Bot running")
 );
