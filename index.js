@@ -34,15 +34,15 @@ const BMI_BY_CLASS_ID = {
 // IMAGE MAP
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class1.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMS5wbmciLCJpYXQiOjE3NzAyMDY2NTgsImV4cCI6MTgwMTc0MjY1OH0.mg1sZa8-PDSM73sNmPfmaYgs9xeccozjafawLA9sMVI",
-  1: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class2.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMi5wbmciLCJpYXQiOjE3NzAyMDY2NzAsImV4cCI6MTgwMTc0MjY3MH0.lpJQdMegEhxkwhLdqS9Zv8FdG-8gnCFHu0bgagL77Ek",
-  2: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class3.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzMy5wbmciLCJpYXQiOjE3NzAyMDY2NzYsImV4cCI6MTgwMTc0MjY3Nn0.4Z9NgubdLjo4L5n7K7bi8ZgFmSqIJYvfo-v4QP_lFus",
-  3: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class4.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNC5wbmciLCJpYXQiOjE3NzAyMDY2ODIsImV4cCI6MTgwMTc0MjY4Mn0.hULVkrISskrkBfWnCu9bQTMEWIf7Zt6h0sbmtrUCV4g",
-  4: "https://tsfcpojgprlspohbxtwu.supabase.co/storage/v1/object/sign/Picture/class5.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8xZjk0OWQ0Mi02MDllLTRhZjgtYmJjMS1kYjcxYmIyN2ZiMzIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJQaWN0dXJlL2NsYXNzNS5wbmciLCJpYXQiOjE3NzAyMDY2ODcsImV4cCI6MTgwMTc0MjY4N30.W0dVfqjgmaj6iVygksdLX8yFmOdLyL1N9UP3qjefek8",
+  0: "URL1",
+  1: "URL2",
+  2: "URL3",
+  3: "URL4",
+  4: "URL5",
 };
 
 // =======================
-// EXERCISE VIDEO MAP
+// VIDEO MAP
 // =======================
 const EXERCISE_VIDEO_BY_CLASS_ID = {
   0: "https://www.youtube.com/watch?v=U0bhE67HuDY",
@@ -96,15 +96,13 @@ app.post("/webhook", async (req, res) => {
   const events = req.body.events || [];
   for (const event of events) {
 
-    // ⭐ DEBUG สำคัญมาก
-    console.log("EVENT:", JSON.stringify(event, null, 2));
-
     const replyToken = event.replyToken;
     if (!replyToken || event.type !== "message") continue;
 
     try {
+
       // =======================
-      // 🟢 TEXT: "ประวัติ"
+      // TEXT: ประวัติ
       // =======================
       if (event.message.type === "text") {
         const text = event.message.text.trim();
@@ -123,7 +121,7 @@ app.post("/webhook", async (req, res) => {
             history.forEach((h, i) => {
               msg +=
                 `${i + 1}) ${BMI_BY_CLASS_ID[h.class_id]}\n` +
-                `ความมั่นใจ: ${(h.confidence * 100).toFixed(1)}%\n` +
+                `ความมั่นใจ: ${h.confidence.toFixed(1)}%\n` +   // ✅ แก้แล้ว
                 `จำนวนใบหน้า: ${h.face_count} คน\n` +
                 `🕒 ${h.created_at}\n\n`;
             });
@@ -135,7 +133,7 @@ app.post("/webhook", async (req, res) => {
       }
 
       // =======================
-      // 🟡 IMAGE: predict
+      // IMAGE: Predict
       // =======================
       if (event.message.type === "image") {
         const { bytes, contentType } = await getLineImageContent(event.message.id);
@@ -160,7 +158,7 @@ app.post("/webhook", async (req, res) => {
             text:
               `✅ ผลการประเมินโดย AI\n` +
               `สถานะ BMI: ${BMI_BY_CLASS_ID[class_id]}\n` +
-              `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%\n\n` +
+              `ความมั่นใจ: ${confidence.toFixed(2)}%\n\n` +  // ✅ แก้แล้ว
               `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
               `🕒 ${nowThai()}`,
           },
@@ -171,6 +169,7 @@ app.post("/webhook", async (req, res) => {
           },
         ]);
       }
+
     } catch (err) {
       console.error(err);
       await replyLine(replyToken, [
@@ -181,5 +180,5 @@ app.post("/webhook", async (req, res) => {
 });
 
 app.listen(10000, () =>
-  console.log("✅ LINE Bot running (Text + Image + History + Video)")
+  console.log("✅ LINE Bot running (Fixed Confidence %)")
 );
