@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import FormData from "form-data";
 
 dotenv.config();
+
 const app = express();
 app.use(express.json());
 
@@ -16,8 +17,12 @@ const LINE_CONTENT_API = "https://api-data.line.me/v2/bot/message";
 const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 const AI_API_URL = process.env.AI_API_URL;
 
-if (!LINE_CHANNEL_ACCESS_TOKEN) throw new Error("LINE_CHANNEL_ACCESS_TOKEN not set");
-if (!AI_API_URL) throw new Error("AI_API_URL not set");
+if (!LINE_CHANNEL_ACCESS_TOKEN) {
+  throw new Error("LINE_CHANNEL_ACCESS_TOKEN not set");
+}
+if (!AI_API_URL) {
+  throw new Error("AI_API_URL not set");
+}
 
 // =======================
 // BMI TEXT MAP
@@ -34,15 +39,15 @@ const BMI_BY_CLASS_ID = {
 // IMAGE MAP
 // =======================
 const BMI_IMAGE_MAP = {
-  0: "URL1",
-  1: "URL2",
-  2: "URL3",
-  3: "URL4",
-  4: "URL5",
+  0: "URL_CLASS_1",
+  1: "URL_CLASS_2",
+  2: "URL_CLASS_3",
+  3: "URL_CLASS_4",
+  4: "URL_CLASS_5",
 };
 
 // =======================
-// VIDEO MAP
+// EXERCISE VIDEO MAP
 // =======================
 const EXERCISE_VIDEO_BY_CLASS_ID = {
   0: "https://www.youtube.com/watch?v=U0bhE67HuDY",
@@ -70,8 +75,11 @@ async function replyLine(replyToken, messages) {
 
 async function getLineImageContent(messageId) {
   const url = `${LINE_CONTENT_API}/${messageId}/content`;
+
   const res = await axios.get(url, {
-    headers: { Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}` },
+    headers: {
+      Authorization: `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`,
+    },
     responseType: "arraybuffer",
   });
 
@@ -94,13 +102,14 @@ app.post("/webhook", async (req, res) => {
   res.sendStatus(200);
 
   const events = req.body.events || [];
+
   for (const event of events) {
+    console.log("EVENT:", JSON.stringify(event, null, 2));
 
     const replyToken = event.replyToken;
     if (!replyToken || event.type !== "message") continue;
 
     try {
-
       // =======================
       // TEXT: ประวัติ
       // =======================
@@ -121,14 +130,17 @@ app.post("/webhook", async (req, res) => {
             history.forEach((h, i) => {
               msg +=
                 `${i + 1}) ${BMI_BY_CLASS_ID[h.class_id]}\n` +
-                `ความมั่นใจ: ${h.confidence.toFixed(1)}%\n` +   // ✅ แก้แล้ว
+                `ความมั่นใจ: ${h.confidence.toFixed(1)}%\n` +
                 `จำนวนใบหน้า: ${h.face_count} คน\n` +
                 `🕒 ${h.created_at}\n\n`;
             });
           }
 
-          await replyLine(replyToken, [{ type: "text", text: msg }]);
+          await replyLine(replyToken, [
+            { type: "text", text: msg },
+          ]);
         }
+
         continue;
       }
 
@@ -136,7 +148,8 @@ app.post("/webhook", async (req, res) => {
       // IMAGE: Predict
       // =======================
       if (event.message.type === "image") {
-        const { bytes, contentType } = await getLineImageContent(event.message.id);
+        const { bytes, contentType } =
+          await getLineImageContent(event.message.id);
 
         const form = new FormData();
         form.append("file", bytes, {
@@ -158,7 +171,7 @@ app.post("/webhook", async (req, res) => {
             text:
               `✅ ผลการประเมินโดย AI\n` +
               `สถานะ BMI: ${BMI_BY_CLASS_ID[class_id]}\n` +
-              `ความมั่นใจ: ${confidence.toFixed(2)}%\n\n` +  // ✅ แก้แล้ว
+              `ความมั่นใจ: ${confidence.toFixed(2)}%\n\n` +
               `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
               `🕒 ${nowThai()}`,
           },
@@ -180,5 +193,5 @@ app.post("/webhook", async (req, res) => {
 });
 
 app.listen(10000, () =>
-  console.log("✅ LINE Bot running (Fixed Confidence %)")
+  console.log("✅ LINE Bot running (Text + Image + History + Video)")
 );
