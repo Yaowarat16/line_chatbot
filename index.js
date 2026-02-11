@@ -135,9 +135,10 @@ app.post("/webhook", async (req, res) => {
         const textReply =
           `✅ ผลการประเมินโดย AI\n` +
           `สถานะ BMI: ${BMI_BY_CLASS_ID[class_id] || "ไม่สามารถระบุได้"}\n` +
-          `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%`
-          `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id]}\n\n` +
+          `ความมั่นใจ: ${(confidence * 100).toFixed(2)}%\n\n` +
+          `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id] || "-"}\n\n` +
           `🕒 ${nowThai()}`;
+
 
         const messages = [
           { type: "text", text: textReply }
