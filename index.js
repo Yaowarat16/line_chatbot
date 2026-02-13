@@ -110,6 +110,40 @@ app.post("/webhook", async (req, res) => {
     try {
 
       // =======================
+      // TEXT: ประวัติ
+      // =======================
+      if (event.message.type === "text") {
+        const text = event.message.text.trim();
+
+        if (text === "ประวัติ") {
+          const historyRes = await axios.get(
+            `${AI_API_URL.replace(/\/+$/, "")}/history?limit=5`
+          );
+
+          const history = historyRes.data.history || [];
+          let msg = "📊 ประวัติการประเมิน BMI (ล่าสุด)\n\n";
+
+          if (history.length === 0) {
+            msg += "ยังไม่มีประวัติการใช้งาน";
+          } else {
+            history.forEach((h, i) => {
+              msg +=
+                `${i + 1}) ${BMI_BY_CLASS_ID[h.class_id]}\n` +
+                `ความมั่นใจ: ${(h.confidence * 100).toFixed(1)}%\n` +
+                `จำนวนใบหน้า: ${h.face_count} คน\n` +
+                `🕒 ${h.created_at}\n\n`;
+            });
+          }
+
+          await replyLine(replyToken, [
+            { type: "text", text: msg },
+          ]);
+        }
+
+        continue;
+      }
+
+      // =======================
       // IMAGE: Predict
       // =======================
       if (event.message.type === "image") {
@@ -139,12 +173,11 @@ app.post("/webhook", async (req, res) => {
           `🏃‍♂️ คลิปแนะนำ:\n${EXERCISE_VIDEO_BY_CLASS_ID[class_id] || "-"}\n\n` +
           `🕒 ${nowThai()}`;
 
-
         const messages = [
           { type: "text", text: textReply }
         ];
 
-        // 🔥 ใส่รูปเพิ่ม ถ้ามี URL จริง
+        // แนบรูปถ้ามี
         if (BMI_IMAGE_MAP[class_id]?.startsWith("https")) {
           messages.push({
             type: "image",
@@ -166,6 +199,9 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
+// =======================
+// START SERVER
+// =======================
 app.listen(process.env.PORT || 10000, () =>
   console.log("✅ LINE Bot running")
 );
