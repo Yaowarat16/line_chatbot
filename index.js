@@ -193,7 +193,7 @@ app.post("/webhook", async (req, res) => {
       console.error("ERROR:", err?.response?.data || err.message);
 
       await replyLine(replyToken, [
-        { type: "text", text: "❌ ระบบไม่สามารถประมวลผลได้ กรุณาลองใหม่" },
+        { type: "text", text: "❌ ระบบไม่สามารถประมวลผลได้ เนื่องจากไม่พบหน้าของมนุษย์ กรุณาส่งรูปภาพของคุณอีกครั้ง" },
       ]);
     }
   }
